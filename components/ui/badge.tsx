@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 
-type Variant =
+export type BadgeVariant =
   | "urgent"
   | "needs_review"
   | "incomplete"
@@ -12,7 +12,7 @@ export function Badge({
   variant = "neutral",
 }: {
   label: string;
-  variant?: Variant;
+  variant?: BadgeVariant;
 }) {
   const colors = {
     urgent: { bg: "#ffe5e5", text: "#c62828" },
