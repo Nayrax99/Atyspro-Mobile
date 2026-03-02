@@ -11,7 +11,7 @@ import {
 const SMS_SIMULATE_BODY = {
   to: '+33612345678',
   from: '+33600000001',
-  body: '1 / 1 / 44 rue de la Paix 75012 Paris / Jean Dupont / Plus d\'électricité',
+  body: "1 / 1 / 44 rue de la Paix 75012 Paris / Jean Dupont / Plus d'électricité",
 };
 
 export default function SettingsScreen() {
@@ -34,7 +34,9 @@ export default function SettingsScreen() {
         setSeedStatus(`Erreur: ${json.error || res.status}`);
       }
     } catch (e) {
-      setSeedStatus(`Erreur: ${e instanceof Error ? e.message : 'Erreur réseau'}`);
+      setSeedStatus(
+        `Erreur: ${e instanceof Error ? e.message : 'Erreur réseau'}`
+      );
     } finally {
       setSeedLoading(false);
     }
@@ -56,7 +58,9 @@ export default function SettingsScreen() {
         setSmsStatus(`Erreur: ${json.error || res.status}`);
       }
     } catch (e) {
-      setSmsStatus(`Erreur: ${e instanceof Error ? e.message : 'Erreur réseau'}`);
+      setSmsStatus(
+        `Erreur: ${e instanceof Error ? e.message : 'Erreur réseau'}`
+      );
     } finally {
       setSmsLoading(false);
     }
@@ -64,6 +68,11 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* 🔥 DEBUG BACKEND URL */}
+      <Text style={styles.backendText}>
+        Backend: {BACKEND_BASE_URL}
+      </Text>
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>À propos</Text>
         <Text style={styles.cardText}>AtysPro Mobile Demo</Text>
@@ -77,6 +86,7 @@ export default function SettingsScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Mode Démo</Text>
+
         <View style={styles.demoRow}>
           <Pressable
             onPress={onSeedDev}
@@ -86,9 +96,6 @@ export default function SettingsScreen() {
               pressed && styles.demoBtnPressed,
               seedLoading && styles.demoBtnDisabled,
             ]}
-            accessibilityRole="button"
-            accessibilityLabel="Seed DEV"
-            accessibilityState={{ busy: seedLoading }}
           >
             {seedLoading ? (
               <ActivityIndicator size="small" color="#fff" />
@@ -96,6 +103,7 @@ export default function SettingsScreen() {
               <Text style={styles.demoBtnText}>Seed DEV</Text>
             )}
           </Pressable>
+
           <Pressable
             onPress={onSimulateSms}
             disabled={smsLoading}
@@ -104,9 +112,6 @@ export default function SettingsScreen() {
               pressed && styles.demoBtnPressed,
               smsLoading && styles.demoBtnDisabled,
             ]}
-            accessibilityRole="button"
-            accessibilityLabel="Simuler SMS"
-            accessibilityState={{ busy: smsLoading }}
           >
             {smsLoading ? (
               <ActivityIndicator size="small" color="#fff" />
@@ -115,13 +120,27 @@ export default function SettingsScreen() {
             )}
           </Pressable>
         </View>
+
         {seedStatus !== null && (
-          <Text style={seedStatus.startsWith('✓') ? styles.statusSuccess : styles.statusError}>
+          <Text
+            style={
+              seedStatus.startsWith('✓')
+                ? styles.statusSuccess
+                : styles.statusError
+            }
+          >
             {seedStatus}
           </Text>
         )}
+
         {smsStatus !== null && (
-          <Text style={smsStatus.startsWith('✓') ? styles.statusSuccess : styles.statusError}>
+          <Text
+            style={
+              smsStatus.startsWith('✓')
+                ? styles.statusSuccess
+                : styles.statusError
+            }
+          >
             {smsStatus}
           </Text>
         )}
@@ -136,6 +155,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     gap: 16,
+  },
+  backendText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
   },
   card: {
     backgroundColor: '#fff',
