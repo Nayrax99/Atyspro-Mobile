@@ -23,7 +23,16 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro",
+      "name": "AtysPro",
+      "shortName": "AtysPro",
+      "description": "Gérez vos leads artisan avec AtysPro",
+      "themeColor": "#2563eb",
+      "backgroundColor": "#ffffff",
+      "startUrl": "/",
+      "display": "standalone",
+      "orientation": "portrait"
     },
     "plugins": [
       "expo-router",

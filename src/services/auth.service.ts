@@ -1,21 +1,22 @@
 /**
- * Service d'authentification - login, signup, token (expo-secure-store), fetchMe
+ * Service d'authentification - login, signup, token, fetchMe
+ * Stockage : expo-secure-store (native) ou localStorage (web) via ./storage
  */
-import * as SecureStore from 'expo-secure-store';
+import * as storage from './storage';
 import { API_BASE_URL } from './api.config';
 
 const TOKEN_KEY = 'sb-access-token';
 
 export async function getStoredToken(): Promise<string | null> {
-  return await SecureStore.getItemAsync(TOKEN_KEY);
+  return storage.getItem(TOKEN_KEY);
 }
 
 export async function storeToken(token: string): Promise<void> {
-  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  await storage.setItem(TOKEN_KEY, token);
 }
 
 export async function removeToken(): Promise<void> {
-  await SecureStore.deleteItemAsync(TOKEN_KEY);
+  await storage.removeItem(TOKEN_KEY);
 }
 
 export async function login(
