@@ -23,7 +23,7 @@ function LoadingScreen() {
 }
 
 function RootNavigatorContent() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, account } = useAuth();
   const pathname = usePathname();
 
   if (isLoading) {
@@ -31,11 +31,26 @@ function RootNavigatorContent() {
   }
 
   const isAuthRoute = pathname === '/login' || pathname === '/signup';
+  const isOnboardingRoute = pathname === '/onboarding';
+
+  // Non authentifié → login (sauf si déjà sur une route auth)
   if (!isAuthenticated && !isAuthRoute) {
     return <Redirect href="/login" />;
   }
+
+  // Authentifié sur route auth → onboarding si pas encore fait, sinon tabs
   if (isAuthenticated && isAuthRoute) {
+    return <Redirect href={account?.onboarding_completed ? '/(tabs)' : '/onboarding'} />;
+  }
+
+  // Authentifié sur onboarding mais déjà complété → tabs
+  if (isAuthenticated && isOnboardingRoute && account?.onboarding_completed) {
     return <Redirect href="/(tabs)" />;
+  }
+
+  // Authentifié, accès aux tabs sans avoir complété l'onboarding → onboarding
+  if (isAuthenticated && !isAuthRoute && !isOnboardingRoute && !account?.onboarding_completed) {
+    return <Redirect href="/onboarding" />;
   }
 
   return (
@@ -45,6 +60,7 @@ function RootNavigatorContent() {
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="signup" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
     </Stack>
   );
 }

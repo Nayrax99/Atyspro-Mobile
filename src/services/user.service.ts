@@ -1,9 +1,24 @@
 /**
- * User / Dev service - seed, simulate SMS, etc.
- * Placeholder for future auth and user-related API calls
+ * User / account service - onboarding, seed, simulate SMS
  */
 
-import { apiPost } from './api';
+import { apiPatch, apiPost } from './api';
+
+export interface OnboardingPayload {
+  owner_phone: string;
+  city: string;
+  specialty: string;
+}
+
+export async function patchOnboarding(
+  payload: OnboardingPayload
+): Promise<{ success: boolean; error?: string }> {
+  const res = await apiPatch<unknown>('/api/auth/onboarding', payload);
+  return {
+    success: res.success,
+    error: res.success ? undefined : res.error,
+  };
+}
 
 export async function seedDev(): Promise<{ success: boolean; error?: string }> {
   const res = await apiPost<unknown>('/api/dev/seed');
