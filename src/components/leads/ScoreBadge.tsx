@@ -3,6 +3,8 @@
  */
 
 import { StyleSheet, Text, View } from 'react-native';
+import { colors } from '@/src/constants/colors';
+import { fontFamily } from '@/src/constants/typography';
 
 interface ScoreBadgeProps {
   score: number | null | undefined;
@@ -35,6 +37,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
 });

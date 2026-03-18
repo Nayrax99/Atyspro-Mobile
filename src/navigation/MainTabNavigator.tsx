@@ -1,55 +1,68 @@
 /**
- * MainTabNavigator - Bottom tabs (Dialer, Leads, Settings)
- * Utilisé par app/(tabs)/_layout.tsx
+ * MainTabNavigator - 3 onglets (Accueil, Leads, Appels)
+ * Header dark custom + BottomNav dark + safe area Android
  */
-
 import { Tabs } from 'expo-router';
-import { Text, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Home, FileText, Phone } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppHeaderDark } from '@/src/components/layout/AppHeaderDark';
 import { colors } from '@/src/constants/colors';
+import { fontFamily } from '@/src/constants/typography';
 
-const TAB_ICON_SIZE = 20;
+const TAB_ICON_SIZE = 22;
 
 export default function MainTabNavigator() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerTitle: 'AtysPro',
-        headerTitleStyle: styles.headerTitle,
-        headerStyle: styles.header,
+        header: () => <AppHeaderDark />,
         tabBarActiveTintColor: colors.atysBlue,
-        tabBarInactiveTintColor: colors.slate500,
-        tabBarIconStyle: { justifyContent: 'center', alignItems: 'center' },
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.45)',
         tabBarLabelStyle: styles.tabLabel,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: {
+          backgroundColor: colors.slate900,
+          borderTopWidth: 0,
+          height: 64 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 8),
+          paddingTop: 8,
+        },
       }}
     >
       <Tabs.Screen
-        name="dialer"
-        options={{
-          title: 'Clavier',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <Text style={[styles.icon, focused && styles.iconActive]}>☎️</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="index"
         options={{
-          title: 'Leads',
-          tabBarIcon: ({ focused }) => (
-            <Text style={[styles.icon, focused && styles.iconActive]}>📋</Text>
+          title: 'Accueil',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconWrap, focused && styles.tabIconWrapActive]}>
+              <Home size={TAB_ICON_SIZE} color={color} />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="leads"
         options={{
-          title: 'Paramètres',
-          tabBarIcon: ({ focused }) => (
-            <Text style={[styles.icon, focused && styles.iconActive]}>⚙️</Text>
+          title: 'Leads',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconWrap, focused && styles.tabIconWrapActive]}>
+              <FileText size={TAB_ICON_SIZE} color={color} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calls"
+        options={{
+          title: 'Appels',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconWrap, focused && styles.tabIconWrapActive]}>
+              <Phone size={TAB_ICON_SIZE} color={color} />
+            </View>
           ),
         }}
       />
@@ -58,29 +71,18 @@ export default function MainTabNavigator() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDefault,
-  },
-  headerTitle: {
-    fontWeight: '700',
-    fontSize: 18,
-    color: colors.textPrimary,
-  },
-  tabBar: {
-    backgroundColor: colors.white,
-    borderTopColor: colors.borderDefault,
-  },
   tabLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
-  icon: {
-    fontSize: TAB_ICON_SIZE,
-    opacity: 0.7,
+  tabIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  iconActive: {
-    opacity: 1,
+  tabIconWrapActive: {
+    backgroundColor: 'rgba(37,99,235,0.15)',
   },
 });
