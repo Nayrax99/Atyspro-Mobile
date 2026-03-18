@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '@/src/constants/theme';
+import { fontFamily } from '@/src/constants/typography';
 
 interface AppHeaderProps {
   title: string;
@@ -39,13 +40,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '800',
+    fontFamily: fontFamily.extraBold,
     color: '#fff',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
     color: 'rgba(255,255,255,0.85)',
   },
 });

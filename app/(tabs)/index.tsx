@@ -1,8 +1,4 @@
-/**
- * Route wrapper - Leads
- */
-import LeadsScreen from '@/src/screens/Leads/LeadsScreen';
-
-export default function LeadsRoute() {
-  return <LeadsScreen />;
+import HomeScreen from '@/src/screens/Home/HomeScreen';
+export default function HomeRoute() {
+  return <HomeScreen />;
 }

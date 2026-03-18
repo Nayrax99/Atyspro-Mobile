@@ -19,6 +19,8 @@ export const theme = {
     md: 16,
     lg: 24,
     xl: 32,
+    '2xl': 48,
+    '3xl': 64,
   },
   borderRadius: {
     sm: 8,

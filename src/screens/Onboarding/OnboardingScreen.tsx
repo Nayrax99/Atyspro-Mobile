@@ -21,6 +21,7 @@ import {
 import { useAuth } from '@/src/contexts/AuthContext';
 import { patchOnboarding } from '@/src/services/user.service';
 import { colors } from '@/src/constants/colors';
+import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
 
 const TOTAL_STEPS = 3;
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     color: colors.atysBlue,
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   // Étape 1 — formulaire
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
     color: colors.slate700,
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.md,
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
     color: colors.slate700,
   },
   chipTextActive: {
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   },
   infoCardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     color: colors.textPrimary,
     marginBottom: theme.spacing.sm,
     flex: 1,
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: colors.white,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     letterSpacing: 0.5,
   },
 
@@ -458,7 +459,7 @@ const styles = StyleSheet.create({
   },
   howTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     color: colors.textPrimary,
     marginBottom: 4,
   },
@@ -493,6 +494,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
 });

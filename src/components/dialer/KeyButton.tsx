@@ -5,6 +5,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors } from '@/src/constants/colors';
+import { fontFamily } from '@/src/constants/typography';
 
 interface KeyButtonProps {
   label: string;
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 28,
-    fontWeight: '500',
+    fontFamily: fontFamily.medium,
     color: colors.textPrimary,
   },
 });

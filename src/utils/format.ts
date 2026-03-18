@@ -47,9 +47,17 @@ export function formatDelay(lead: { delay_code?: number | null }): string {
  */
 export function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '—';
-  const cleaned = String(phone).replace(/\D/g, '');
+  let cleaned = String(phone).replace(/\D/g, '');
+
+  // Convertir +33XXXXXXXXX → 0XXXXXXXXX (format international FR → format local)
+  if (cleaned.startsWith('33') && cleaned.length === 11) {
+    cleaned = '0' + cleaned.slice(2);
+  }
+
+  // Format français standard : 06 16 38 83 56
   if (cleaned.length === 10 && cleaned.startsWith('0')) {
     return cleaned.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
   }
+
   return String(phone);
 }

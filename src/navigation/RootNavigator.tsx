@@ -1,16 +1,24 @@
 /**
- * RootNavigator - Stack principal avec auth : loader, login/signup ou tabs + lead + modal
+ * RootNavigator - Stack principal avec auth : loader, login/signup ou tabs + lead
  */
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Redirect, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useFonts } from 'expo-font';
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import { ActivityIndicator, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
 import { BusinessProvider } from '@/src/contexts/BusinessContext';
 import { colors } from '@/src/constants/colors';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { fontFamily } from '@/src/constants/typography';
 
 // Écran de chargement au démarrage (vérification du token)
 function LoadingScreen() {
@@ -57,7 +65,8 @@ function RootNavigatorContent() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="lead/[id]" options={{ title: 'Détail lead' }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+      <Stack.Screen name="account" options={{ title: 'Mon compte' }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="signup" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
@@ -67,6 +76,17 @@ function RootNavigatorContent() {
 
 export default function RootNavigator() {
   const colorScheme = useColorScheme();
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
+  });
+
+  if (!fontsLoaded) {
+    return <LoadingScreen />;
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -90,6 +110,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+    fontFamily: fontFamily.medium,
     color: colors.atysBlue,
   },
 });

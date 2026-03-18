@@ -5,6 +5,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/src/constants/colors';
+import { fontFamily } from '@/src/constants/typography';
 
 interface TagProps {
   label: string;
@@ -15,7 +16,7 @@ const variantStyles: Record<NonNullable<TagProps['variant']>, { bg: string; text
   default: { bg: colors.slate100, text: colors.slate700 },
   primary: { bg: '#eef2ff', text: colors.atysBlue },
   success: { bg: '#d1fae5', text: colors.atysSuccess },
-  warning: { bg: '#fef3c7', text: '#d97706' },
+  warning: { bg: '#fef3c7', text: colors.atysWarning },
   danger: { bg: '#fee2e2', text: colors.atysDanger },
 };
 
@@ -37,6 +38,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
 });

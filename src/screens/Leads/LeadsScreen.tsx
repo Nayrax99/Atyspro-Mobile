@@ -3,6 +3,7 @@
  */
 
 import { LeadCard } from '@/src/components/leads/LeadCard';
+import { EmptyState } from '@/src/components/common/EmptyState';
 import { fetchLeads } from '@/src/services/leads.service';
 import type { Lead } from '@/src/services/leads.service';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -18,7 +19,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { FileText } from 'lucide-react-native';
 import { colors } from '@/src/constants/colors';
+import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
 
 export type LeadStatusFilter = 'all' | 'needs_review' | 'incomplete' | 'complete';
@@ -104,6 +107,7 @@ export default function LeadsScreen() {
             onPress={() => setStatusFilter(chip.value)}
             style={[styles.chip, statusFilter === chip.value && styles.chipActive]}
             accessibilityRole="button"
+            accessibilityLabel={`Filtrer par ${chip.label}`}
             accessibilityState={{ selected: statusFilter === chip.value }}
           >
             <Text style={[styles.chipText, statusFilter === chip.value && styles.chipTextActive]}>{chip.label}</Text>
@@ -115,10 +119,17 @@ export default function LeadsScreen() {
         <Pressable
           onPress={() => setSortMode('priority')}
           style={[styles.sortBtn, sortMode === 'priority' && styles.sortBtnActive]}
+          accessibilityRole="button"
+          accessibilityLabel="Trier par priorité"
         >
           <Text style={[styles.sortBtnText, sortMode === 'priority' && styles.sortBtnTextActive]}>Priorité</Text>
         </Pressable>
-        <Pressable onPress={() => setSortMode('recent')} style={[styles.sortBtn, sortMode === 'recent' && styles.sortBtnActive]}>
+        <Pressable
+          onPress={() => setSortMode('recent')}
+          style={[styles.sortBtn, sortMode === 'recent' && styles.sortBtnActive]}
+          accessibilityRole="button"
+          accessibilityLabel="Trier par récence"
+        >
           <Text style={[styles.sortBtnText, sortMode === 'recent' && styles.sortBtnTextActive]}>Récent</Text>
         </Pressable>
       </View>
@@ -141,16 +152,18 @@ export default function LeadsScreen() {
         <FlatList
           data={filteredAndSortedLeads}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, filteredAndSortedLeads.length === 0 && styles.listEmpty]}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item }) => <LeadCard lead={item} />}
+          renderItem={({ item, index }) => <LeadCard lead={item} index={index} />}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.atysBlue]} tintColor={colors.atysBlue} />
           }
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>Aucun lead</Text>
-            </View>
+            <EmptyState
+              icon={FileText}
+              title="Aucun lead pour le moment"
+              subtitle="Les appels qualifiés par votre assistant apparaîtront ici"
+            />
           }
         />
       )}
@@ -176,6 +189,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 12,
     fontSize: 16,
+    fontFamily: fontFamily.regular,
     color: colors.textPrimary,
     minHeight: minTouch,
   },
@@ -198,7 +212,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipActive: { backgroundColor: colors.atysBlue },
-  chipText: { fontSize: 14, fontWeight: '600', color: colors.slate700 },
+  chipText: { fontSize: 14, fontFamily: fontFamily.semiBold, color: colors.slate700 },
   chipTextActive: { color: colors.white },
   sortRow: {
     flexDirection: 'row',
@@ -208,7 +222,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: colors.white,
   },
-  sortLabel: { fontSize: 14, color: colors.slate600, marginRight: 4 },
+  sortLabel: { fontSize: 14, fontFamily: fontFamily.regular, color: colors.slate600, marginRight: 4 },
   sortBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -218,8 +232,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sortBtnActive: { backgroundColor: '#eef2ff' },
-  sortBtnText: { fontSize: 14, fontWeight: '500', color: colors.slate600 },
-  sortBtnTextActive: { color: colors.atysBlue, fontWeight: '600' },
+  sortBtnText: { fontSize: 14, fontFamily: fontFamily.medium, color: colors.slate600 },
+  sortBtnTextActive: { fontFamily: fontFamily.semiBold, color: colors.atysBlue },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorCard: {
     margin: theme.spacing.md,
@@ -229,11 +243,10 @@ const styles = StyleSheet.create({
     borderColor: '#fcc',
     backgroundColor: '#fff5f5',
   },
-  errorTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
-  errorText: { fontSize: 14, color: colors.atysDanger },
-  errorHint: { marginTop: 8, fontSize: 12, opacity: 0.8 },
+  errorTitle: { fontSize: 16, fontFamily: fontFamily.bold, marginBottom: 8 },
+  errorText: { fontSize: 14, fontFamily: fontFamily.regular, color: colors.atysDanger },
+  errorHint: { marginTop: 8, fontSize: 12, fontFamily: fontFamily.regular, opacity: 0.8 },
   list: { padding: theme.spacing.md, paddingBottom: 32 },
+  listEmpty: { flex: 1 },
   separator: { height: 12 },
-  empty: { paddingVertical: 48, alignItems: 'center' },
-  emptyText: { fontSize: 16, color: colors.slate600 },
 });

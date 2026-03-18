@@ -10,6 +10,13 @@ export const colors = {
   atysYellow: '#fbbf24',
   atysSuccess: '#10b981',
   atysDanger: '#ef4444',
+  atysWarning: '#f59e0b',
+
+  // Gray aliases (cohérence dashboard web)
+  gray50: '#f9fafb',
+  gray100: '#f3f4f6',
+  gray500: '#6b7280',
+  gray900: '#111827',
 
   // Neutrals
   white: '#ffffff',

@@ -60,9 +60,13 @@ export async function fetchMe(token: string): Promise<{
   account?: { id: string; name: string; onboarding_completed: boolean };
   error?: string;
 }> {
-  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const json = await res.json();
-  return json;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const json = await res.json();
+    return json;
+  } catch {
+    return { success: false, error: 'Erreur réseau' };
+  }
 }

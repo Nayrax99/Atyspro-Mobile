@@ -16,6 +16,7 @@ import {
 
 import { useAuth } from '@/src/contexts/AuthContext';
 import { colors } from '@/src/constants/colors';
+import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   logo: {
     color: colors.atysBlue,
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     textAlign: 'center',
     marginBottom: theme.spacing.xs,
   },
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
   link: {
     marginTop: theme.spacing.lg,
