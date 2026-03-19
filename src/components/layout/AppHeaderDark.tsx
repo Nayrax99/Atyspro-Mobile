@@ -1,9 +1,9 @@
 /**
  * AppHeaderDark - Header sombre global pour les onglets tabs
- * Avatar gradient + salutation + statut IA glassmorphism
+ * Avatar gradient + salutation + sous-texte profil
  */
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell } from 'lucide-react-native';
@@ -18,18 +18,6 @@ export function AppHeaderDark() {
   const router = useRouter();
   const { account } = useAuth();
   const [hasUnread] = useState(false);
-  const pulseAnim = useRef(new Animated.Value(0.3)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulseAnim]);
 
   const firstName = (account?.name || 'vous').split(' ')[0] || 'vous';
   const initials = (account?.name || 'A')
@@ -39,9 +27,10 @@ export function AppHeaderDark() {
     .toUpperCase()
     .slice(0, 2);
 
+  const subtitle = account?.name || 'AtysPro';
+
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
-      {/* Row 1 : Profil + Cloche */}
       <View style={styles.profileRow}>
         <Pressable
           onPress={() => router.push('/account')}
@@ -59,7 +48,7 @@ export function AppHeaderDark() {
           </LinearGradient>
           <View>
             <Text style={styles.greeting}>Bonjour, {firstName}</Text>
-            <Text style={styles.subGreeting}>AtysPro · Pro</Text>
+            <Text style={styles.subGreeting}>{subtitle}</Text>
           </View>
         </Pressable>
 
@@ -73,35 +62,20 @@ export function AppHeaderDark() {
           {hasUnread && <View style={styles.bellBadge} />}
         </Pressable>
       </View>
-
-      {/* Row 2 : Statut IA glassmorphism */}
-      <View style={styles.agentCard}>
-        <Animated.View style={[styles.dot, { opacity: pulseAnim }]} />
-        <View style={styles.agentInfo}>
-          <Text style={styles.agentStatus}>Agent IA actif</Text>
-          <Text style={styles.agentSub}>Répond aux appels manqués 24/7</Text>
-        </View>
-        <View style={styles.onBadge}>
-          <Text style={styles.onText}>ON</Text>
-        </View>
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.slate900,
+    backgroundColor: colors.navy,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
-
-  // Row profil
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
   profileLeft: {
     flexDirection: 'row',
@@ -148,46 +122,5 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.atysDanger,
-  },
-
-  // Carte IA
-  agentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 16,
-    padding: 14,
-    gap: 10,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.atysSuccess,
-  },
-  agentInfo: { flex: 1 },
-  agentStatus: {
-    fontSize: 14,
-    fontFamily: fontFamily.semiBold,
-    color: colors.atysSuccess,
-    marginBottom: 2,
-  },
-  agentSub: {
-    fontSize: 11,
-    fontFamily: fontFamily.regular,
-    color: 'rgba(255,255,255,0.5)',
-  },
-  onBadge: {
-    backgroundColor: 'rgba(16,185,129,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  onText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bold,
-    color: colors.atysSuccess,
   },
 });

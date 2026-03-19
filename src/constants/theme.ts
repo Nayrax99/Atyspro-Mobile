@@ -1,6 +1,5 @@
 /**
- * Theme configuration - AtysPro design system
- * Extends colors with gradients and semantic tokens
+ * AtysPro Design System — theme aligné sur globals.css dashboard
  */
 
 import { colors } from './colors';
@@ -8,10 +7,11 @@ import { colors } from './colors';
 export const theme = {
   colors,
   gradients: {
-    primary: ['#2563eb', '#7c3aed'] as const,
-    success: ['#10b981', '#059669'] as const,
-    danger: ['#ef4444', '#dc2626'] as const,
-    urgent: ['#ef4444', '#dc2626'] as const,
+    primary: ['#1A56DB', '#7c3aed'] as const,
+    success: ['#16A34A', '#059669'] as const,
+    danger: ['#ef4444', '#DC2626'] as const,
+    urgent: ['#ef4444', '#DC2626'] as const,
+    warning: ['#f59e0b', '#D97706'] as const,
   },
   spacing: {
     xs: 4,
@@ -31,17 +31,24 @@ export const theme = {
   shadows: {
     card: {
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 8 },
+      shadowOffset: { width: 0, height: 20 },
       shadowOpacity: 0.08,
-      shadowRadius: 24,
-      elevation: 4,
+      shadowRadius: 40,
+      elevation: 6,
     },
     cardHover: {
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 12 },
+      shadowOffset: { width: 0, height: 32 },
       shadowOpacity: 0.12,
-      shadowRadius: 32,
-      elevation: 6,
+      shadowRadius: 64,
+      elevation: 8,
+    },
+    button: {
+      shadowColor: '#1A56DB',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.4,
+      shadowRadius: 24,
+      elevation: 4,
     },
   },
 } as const;

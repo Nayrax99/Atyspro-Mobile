@@ -59,3 +59,14 @@ export async function updateLeadStatus(
     error: res.success ? undefined : res.error,
   };
 }
+
+export async function updateLead(
+  id: string,
+  data: Partial<Pick<Lead, 'full_name' | 'address' | 'status'>>
+): Promise<{ data: Lead | null; error?: string }> {
+  const res = await apiPatch<Lead>(`/api/leads/${id}`, data as Record<string, unknown>);
+  return {
+    data: res.success ? res.data ?? null : null,
+    error: res.success ? undefined : res.error,
+  };
+}

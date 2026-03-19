@@ -2,7 +2,7 @@
  * KeyButton - Bouton du keypad
  */
 
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
@@ -17,6 +17,8 @@ export function KeyButton({ label, onPress }: KeyButtonProps) {
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`Touche ${label}`}
     >
       <Text style={styles.text}>{label}</Text>
     </Pressable>
@@ -27,19 +29,31 @@ const styles = StyleSheet.create({
   key: {
     width: 72,
     height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.slate50,
+    borderRadius: 16,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.borderDefault,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+      },
+      android: { elevation: 2 },
+      web: {
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      } as object,
+    }),
   },
   keyPressed: {
-    backgroundColor: colors.slate200,
+    backgroundColor: colors.gray200,
   },
   text: {
-    fontSize: 28,
+    fontSize: 30,
     fontFamily: fontFamily.medium,
-    color: colors.textPrimary,
+    color: colors.slate900,
   },
 });

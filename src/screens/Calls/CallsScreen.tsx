@@ -1,5 +1,5 @@
 /**
- * CallsScreen - Clavier téléphonique + Historique des appels
+ * CallsScreen - Clavier téléphonique + Historique des appels avec mini stats
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneOff } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { Keypad } from '@/src/components/dialer/Keypad';
 import { EmptyState } from '@/src/components/common/EmptyState';
@@ -52,15 +53,32 @@ function DialerTab() {
   return (
     <View style={styles.dialerBody}>
       <View style={styles.display}>
-        <Text style={styles.displayText} numberOfLines={1}>
+        <Text
+          style={styles.displayText}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+        >
           {number || ' '}
         </Text>
       </View>
       <View style={styles.dialerActions}>
-        <Pressable onPress={onBackspace} style={styles.actionBtn} hitSlop={12} accessibilityRole="button" accessibilityLabel="Effacer dernier chiffre">
+        <Pressable
+          onPress={onBackspace}
+          style={styles.actionBtn}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Effacer dernier chiffre"
+        >
           <Text style={styles.actionText}>Effacer</Text>
         </Pressable>
-        <Pressable onPress={onClear} style={styles.actionBtn} hitSlop={12} accessibilityRole="button" accessibilityLabel="Tout effacer">
+        <Pressable
+          onPress={onClear}
+          style={styles.actionBtn}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Tout effacer"
+        >
           <Text style={styles.actionText}>Tout effacer</Text>
         </Pressable>
       </View>
@@ -70,12 +88,19 @@ function DialerTab() {
       <Pressable
         onPress={onCall}
         disabled={number.replace(/\D/g, '').length < 10}
-        style={({ pressed }) => [styles.callBtn, pressed && styles.callBtnPressed]}
+        style={({ pressed }) => [styles.callBtnWrapper, pressed && { opacity: 0.9 }]}
         accessibilityRole="button"
         accessibilityLabel="Appeler ce numéro"
       >
-        <Phone size={20} color={colors.white} />
-        <Text style={styles.callBtnText}>Appeler</Text>
+        <LinearGradient
+          colors={['#16A34A', '#059669']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.callBtn}
+        >
+          <Phone size={20} color={colors.white} />
+          <Text style={styles.callBtnText}>Appeler</Text>
+        </LinearGradient>
       </Pressable>
     </View>
   );
@@ -89,21 +114,27 @@ function formatCallerNumber(call: Call): string {
   return formatPhone(number);
 }
 
+function getCallDurationMs(call: Call): number | null {
+  if (!call.started_at || !call.ended_at) return null;
+  return new Date(call.ended_at).getTime() - new Date(call.started_at).getTime();
+}
+
 function CallItem({ call, index }: { call: Call; index: number }) {
   const isInbound = call.direction === 'inbound';
   const animStyle = useCardEntrance(index);
 
+  const durationMs = getCallDurationMs(call);
   let duration: string | null = null;
-  if (call.started_at && call.ended_at) {
-    const mins = Math.round(
-      (new Date(call.ended_at).getTime() - new Date(call.started_at).getTime()) / 60000
-    );
+  if (durationMs !== null) {
+    const mins = Math.round(durationMs / 60000);
     duration = mins > 0 ? `${mins} min` : '< 1 min';
   }
+  const hasLead = durationMs !== null && durationMs > 30000;
+  const borderColor = isInbound ? colors.atysSuccess : colors.atysBlue;
 
   return (
     <Animated.View style={animStyle}>
-      <View style={styles.callItem}>
+      <View style={[styles.callItem, { borderLeftColor: borderColor }]}>
         <View
           style={[
             styles.callIconWrap,
@@ -117,7 +148,14 @@ function CallItem({ call, index }: { call: Call; index: number }) {
           )}
         </View>
         <View style={styles.callInfo}>
-          <Text style={styles.callNumber}>{formatCallerNumber(call)}</Text>
+          <View style={styles.callHeader}>
+            <Text style={styles.callNumber}>{formatCallerNumber(call)}</Text>
+            {hasLead && (
+              <View style={styles.leadBadge}>
+                <Text style={styles.leadBadgeText}>Lead créé</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.callMeta}>
             {formatRelativeTime(call.started_at)}
             {duration ? ` · ${duration}` : ''}
@@ -125,6 +163,20 @@ function CallItem({ call, index }: { call: Call; index: number }) {
         </View>
       </View>
     </Animated.View>
+  );
+}
+
+interface StatPillProps {
+  label: string;
+  value: string | number;
+}
+
+function StatPill({ label, value }: StatPillProps) {
+  return (
+    <View style={styles.statPill}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -150,6 +202,16 @@ function HistoryTab() {
     setRefreshing(false);
   }
 
+  // Stats calculées
+  const qualified = calls.filter((c) => getCallDurationMs(c) !== null && (getCallDurationMs(c) ?? 0) > 30000).length;
+  const durations = calls
+    .map((c) => getCallDurationMs(c))
+    .filter((d): d is number => d !== null && d > 0);
+  const avgDurationMin = durations.length > 0
+    ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length / 60000)
+    : 0;
+  const avgLabel = avgDurationMin > 0 ? `${avgDurationMin} min` : '< 1 min';
+
   return (
     <FlatList
       data={calls}
@@ -159,6 +221,15 @@ function HistoryTab() {
       ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.atysBlue} />
+      }
+      ListHeaderComponent={
+        calls.length > 0 ? (
+          <View style={styles.statsRow}>
+            <StatPill label="TOTAL" value={calls.length} />
+            <StatPill label="QUALIFIÉS" value={qualified} />
+            <StatPill label="DURÉE MOY." value={durations.length > 0 ? avgLabel : '—'} />
+          </View>
+        ) : null
       }
       ListEmptyComponent={
         <EmptyState
@@ -246,11 +317,11 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.lg,
   },
   display: {
-    backgroundColor: colors.slate50,
+    backgroundColor: colors.white,
     borderRadius: theme.borderRadius.lg,
-    padding: 20,
+    paddingHorizontal: 20,
     marginBottom: 16,
-    minHeight: 56,
+    height: 56,
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.borderDefault,
@@ -271,32 +342,72 @@ const styles = StyleSheet.create({
   actionBtn: { paddingVertical: 8, paddingHorizontal: 16 },
   actionText: { fontSize: 14, fontFamily: fontFamily.semiBold, color: colors.atysBlue },
   keypadWrap: { flex: 1, justifyContent: 'center' },
+  callBtnWrapper: {
+    marginTop: 24,
+  },
   callBtn: {
-    backgroundColor: colors.atysSuccess,
-    borderRadius: theme.borderRadius.lg,
-    padding: 16,
+    borderRadius: theme.borderRadius.xl,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 24,
     minHeight: minTouch,
+    shadowColor: '#16A34A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 4,
   },
-  callBtnPressed: { opacity: 0.9 },
-  callBtnText: { fontSize: 18, fontFamily: fontFamily.bold, color: colors.white },
+  callBtnText: { fontSize: 16, fontFamily: fontFamily.bold, color: colors.white },
+
+  // Stats pills
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  statPill: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  statValue: {
+    fontSize: 18,
+    fontFamily: fontFamily.semiBold,
+    color: colors.slate900,
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontFamily: fontFamily.semiBold,
+    color: colors.slate500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
 
   // History
   listContent: { padding: theme.spacing.lg, gap: 0 },
   listEmpty: { flex: 1 },
   callItem: {
     backgroundColor: colors.white,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     borderWidth: 1,
     borderColor: colors.borderDefault,
+    borderLeftWidth: 3,
   },
   callIconWrap: {
     width: 40,
@@ -306,6 +417,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   callInfo: { flex: 1 },
-  callNumber: { fontSize: 15, fontFamily: fontFamily.semiBold, color: colors.textPrimary, marginBottom: 2 },
+  callHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
+  callNumber: { fontSize: 15, fontFamily: fontFamily.semiBold, color: colors.textPrimary },
   callMeta: { fontSize: 13, fontFamily: fontFamily.regular, color: colors.textSecondary },
+  leadBadge: {
+    backgroundColor: '#EBF2FF',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  leadBadgeText: {
+    fontSize: 10,
+    fontFamily: fontFamily.semiBold,
+    color: colors.atysBlue,
+  },
 });

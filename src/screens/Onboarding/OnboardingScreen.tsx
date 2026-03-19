@@ -1,9 +1,8 @@
 /**
- * OnboardingScreen - Flow 3 étapes
+ * OnboardingScreen - Flow 3 étapes — DA dark
  * Étape 1 : Vos informations (numéro, ville, spécialité)
  * Étape 2 : Votre numéro professionnel (informatif, badge SOON)
  * Étape 3 : Comment ça marche + bouton de soumission
- * PATCH /api/auth/onboarding appelé uniquement à l'étape 3
  */
 import { useState } from 'react';
 import {
@@ -17,12 +16,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/src/contexts/AuthContext';
 import { patchOnboarding } from '@/src/services/user.service';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
-import { theme } from '@/src/constants/theme';
 
 const TOTAL_STEPS = 3;
 
@@ -51,7 +51,6 @@ const HOW_IT_WORKS = [
   },
 ];
 
-// --- Progress bar ---
 function ProgressBar({ step }: { step: number }) {
   return (
     <View style={styles.progressContainer}>
@@ -61,7 +60,6 @@ function ProgressBar({ step }: { step: number }) {
           style={[
             styles.progressSegment,
             i < step && styles.progressSegmentActive,
-            i < TOTAL_STEPS - 1 && styles.progressSegmentGap,
           ]}
         />
       ))}
@@ -69,7 +67,6 @@ function ProgressBar({ step }: { step: number }) {
   );
 }
 
-// --- Étape 1 : Vos informations ---
 function StepInfos({
   ownerPhone, setOwnerPhone,
   city, setCity,
@@ -83,18 +80,14 @@ function StepInfos({
 }) {
   return (
     <>
-      <Text style={styles.stepTitle} accessibilityRole="header">
-        Vos informations
-      </Text>
-      <Text style={styles.stepSubtitle}>
-        Personnalisez AtysPro pour votre activité.
-      </Text>
+      <Text style={styles.stepTitle} accessibilityRole="header">Vos informations</Text>
+      <Text style={styles.stepSubtitle}>Personnalisez AtysPro pour votre activité.</Text>
 
       <Text style={styles.label}>Votre numéro de téléphone</Text>
       <TextInput
         style={styles.input}
         placeholder="06 XX XX XX XX"
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor="rgba(255,255,255,0.3)"
         value={ownerPhone}
         onChangeText={setOwnerPhone}
         keyboardType="phone-pad"
@@ -102,15 +95,13 @@ function StepInfos({
         editable={!loading}
         accessibilityLabel="Votre numéro de téléphone"
       />
-      <Text style={styles.hint}>
-        Ce numéro vous permettra d'être contacté par notre équipe
-      </Text>
+      <Text style={styles.hint}>{"Ce numéro vous permettra d'être contacté par notre équipe"}</Text>
 
-      <Text style={styles.label}>Ville d'exercice</Text>
+      <Text style={styles.label}>{"Ville d'exercice"}</Text>
       <TextInput
         style={styles.input}
         placeholder="Paris"
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor="rgba(255,255,255,0.3)"
         value={city}
         onChangeText={setCity}
         autoCapitalize="words"
@@ -139,20 +130,17 @@ function StepInfos({
   );
 }
 
-// --- Étape 2 : Votre numéro professionnel ---
 function StepPhoneNumber() {
   return (
     <>
-      <Text style={styles.stepTitle} accessibilityRole="header">
-        Votre numéro professionnel
-      </Text>
+      <Text style={styles.stepTitle} accessibilityRole="header">Votre numéro professionnel</Text>
       <Text style={styles.stepSubtitle}>
         Un numéro dédié sera attribué à votre compte pour séparer vos appels pro de votre ligne personnelle.
       </Text>
 
       <View style={styles.infoCard}>
         <Text style={styles.infoCardEmoji}>📱</Text>
-        <Text style={styles.infoCardTitle}>Un numéro rien qu'à vous</Text>
+        <Text style={styles.infoCardTitle}>Un numéro rien que pour vous</Text>
         <Text style={styles.infoCardText}>
           Vos clients appelleront ce numéro. AtysPro intercepte les appels manqués, joue un message vocal et envoie automatiquement le SMS de qualification.
         </Text>
@@ -162,28 +150,23 @@ function StepPhoneNumber() {
         <View style={styles.infoCardTitleRow}>
           <Text style={styles.infoCardEmoji}>⚡</Text>
           <Text style={styles.infoCardTitle}>Attribution automatique</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>SOON</Text>
+          <View style={styles.soonBadge}>
+            <Text style={styles.soonText}>SOON</Text>
           </View>
         </View>
         <Text style={styles.infoCardText}>
-          Votre numéro professionnel sera attribué automatiquement à l'activation de votre compte. Vous en serez notifié par e-mail.
+          {"Votre numéro professionnel sera attribué automatiquement à l'activation de votre compte. Vous en serez notifié par e-mail."}
         </Text>
       </View>
     </>
   );
 }
 
-// --- Étape 3 : Comment ça marche ---
 function StepHowItWorks() {
   return (
     <>
-      <Text style={styles.stepTitle} accessibilityRole="header">
-        Comment ça marche ?
-      </Text>
-      <Text style={styles.stepSubtitle}>
-        Chaque appel manqué devient une opportunité qualifiée.
-      </Text>
+      <Text style={styles.stepTitle} accessibilityRole="header">{'Comment ça marche ?'}</Text>
+      <Text style={styles.stepSubtitle}>Chaque appel manqué devient une opportunité qualifiée.</Text>
 
       {HOW_IT_WORKS.map((item, i) => (
         <View key={i} style={styles.howRow}>
@@ -194,16 +177,15 @@ function StepHowItWorks() {
             <Text style={styles.howTitle}>{item.title}</Text>
             <Text style={styles.howDescription}>{item.description}</Text>
           </View>
-          {i < HOW_IT_WORKS.length - 1 && <View style={styles.howConnector} />}
         </View>
       ))}
     </>
   );
 }
 
-// --- Écran principal ---
 export default function OnboardingScreen() {
   const { refreshAuth } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState(1);
   const [ownerPhone, setOwnerPhone] = useState('');
@@ -234,7 +216,6 @@ export default function OnboardingScreen() {
       setLoading(false);
       return;
     }
-    // refreshAuth → account.onboarding_completed = true → RootNavigator redirige
     await refreshAuth();
     setLoading(false);
   };
@@ -244,11 +225,29 @@ export default function OnboardingScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <ProgressBar step={step} />
+      <View style={[styles.progressWrapper, { paddingTop: insets.top + 16 }]}>
+        {/* Header compact */}
+        <View style={styles.header}>
+          <LinearGradient
+            colors={['#2563eb', '#7c3aed']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.logoIcon}
+          >
+            <Text style={styles.logoEmoji}>⚡</Text>
+          </LinearGradient>
+          <Text style={styles.logoText}>AtysPro</Text>
+          <View style={styles.stepCounter}>
+            <Text style={styles.stepCounterText}>{step}/{TOTAL_STEPS}</Text>
+          </View>
+        </View>
+        <ProgressBar step={step} />
+      </View>
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         {step === 1 && (
           <StepInfos
@@ -262,33 +261,47 @@ export default function OnboardingScreen() {
         {step === 3 && <StepHowItWorks />}
 
         {error ? (
-          <Text style={styles.error} accessibilityLiveRegion="polite">
-            {error}
-          </Text>
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText} accessibilityLiveRegion="polite">{error}</Text>
+          </View>
         ) : null}
 
         {step < TOTAL_STEPS ? (
           <Pressable
-            style={styles.button}
+            style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.9 }]}
             onPress={handleNext}
             accessibilityRole="button"
             accessibilityLabel="Continuer"
           >
-            <Text style={styles.buttonText}>Continuer</Text>
+            <LinearGradient
+              colors={['#2563eb', '#1d4ed8']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.submitGradient}
+            >
+              <Text style={styles.submitText}>Continuer</Text>
+            </LinearGradient>
           </Pressable>
         ) : (
           <Pressable
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={({ pressed }) => [styles.submitBtn, loading && styles.btnDisabled, pressed && { opacity: 0.9 }]}
             onPress={handleSubmit}
             disabled={loading}
             accessibilityRole="button"
             accessibilityLabel="Commencer à utiliser AtysPro"
           >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.buttonText}>Commencer à utiliser AtysPro</Text>
-            )}
+            <LinearGradient
+              colors={['#2563eb', '#1d4ed8']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.submitGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text style={styles.submitText}>{"Commencer à utiliser AtysPro"}</Text>
+              )}
+            </LinearGradient>
           </Pressable>
         )}
       </ScrollView>
@@ -301,91 +314,131 @@ const minTouch = Platform.OS === 'android' ? 48 : 44;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.slate900,
   },
 
-  // Progress bar
+  // Header + progress
+  progressWrapper: {
+    paddingHorizontal: 24,
+    paddingBottom: 8,
+    backgroundColor: colors.slate900,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  logoIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoEmoji: { fontSize: 16 },
+  logoText: {
+    fontSize: 18,
+    fontFamily: fontFamily.bold,
+    color: colors.white,
+    flex: 1,
+  },
+  stepCounter: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  stepCounterText: {
+    fontSize: 13,
+    fontFamily: fontFamily.semiBold,
+    color: 'rgba(255,255,255,0.7)',
+  },
   progressContainer: {
     flexDirection: 'row',
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
-    marginTop: theme.spacing.xl,
     gap: 6,
   },
   progressSegment: {
     flex: 1,
-    height: 4,
+    height: 3,
     borderRadius: 2,
-    backgroundColor: colors.slate200,
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   progressSegmentActive: {
     backgroundColor: colors.atysBlue,
   },
-  progressSegmentGap: {
-    // gap géré par le View parent
-  },
 
-  // Content
+  // Contenu
   content: {
-    padding: theme.spacing.lg,
-    paddingBottom: 48,
+    paddingHorizontal: 24,
+    paddingTop: 8,
   },
   stepTitle: {
     fontSize: 24,
     fontFamily: fontFamily.bold,
-    color: colors.atysBlue,
-    marginBottom: theme.spacing.sm,
-    marginTop: theme.spacing.lg,
+    color: colors.white,
+    marginBottom: 8,
+    marginTop: 16,
   },
   stepSubtitle: {
     fontSize: 15,
-    color: colors.textSecondary,
-    marginBottom: theme.spacing.lg,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.55)',
+    marginBottom: 24,
     lineHeight: 22,
   },
 
-  // Étape 1 — formulaire
+  // Formulaire étape 1
   label: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: fontFamily.semiBold,
-    color: colors.slate700,
-    marginBottom: theme.spacing.sm,
-    marginTop: theme.spacing.md,
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 8,
+    marginTop: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: colors.cardBackground,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: theme.borderRadius.md,
-    padding: 14,
+    borderColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
-    color: colors.textPrimary,
+    color: colors.white,
+    fontFamily: fontFamily.regular,
   },
   hint: {
     fontSize: 12,
-    color: colors.textMuted,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.35)',
     marginTop: 6,
   },
   specialtyRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
+    marginTop: 4,
   },
   chip: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: theme.borderRadius.xl,
-    backgroundColor: colors.slate100,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
     minHeight: minTouch,
     justifyContent: 'center',
   },
   chipActive: {
     backgroundColor: colors.atysBlue,
+    borderColor: colors.atysBlue,
   },
   chipText: {
     fontSize: 14,
     fontFamily: fontFamily.semiBold,
-    color: colors.slate700,
+    color: 'rgba(255,255,255,0.7)',
   },
   chipTextActive: {
     color: colors.white,
@@ -393,66 +446,65 @@ const styles = StyleSheet.create({
 
   // Étape 2 — cartes info
   infoCard: {
-    backgroundColor: colors.white,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: colors.borderDefault,
-    marginBottom: theme.spacing.md,
+    borderColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 12,
   },
   infoCardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
+    gap: 8,
+    marginBottom: 8,
   },
   infoCardEmoji: {
     fontSize: 28,
-    marginBottom: theme.spacing.sm,
+    marginBottom: 8,
   },
   infoCardTitle: {
     fontSize: 16,
     fontFamily: fontFamily.bold,
-    color: colors.textPrimary,
-    marginBottom: theme.spacing.sm,
+    color: colors.white,
+    marginBottom: 8,
     flex: 1,
   },
   infoCardText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.55)',
     lineHeight: 21,
   },
-  badge: {
-    backgroundColor: colors.atysViolet,
-    borderRadius: 6,
+  soonBadge: {
+    backgroundColor: 'rgba(124,58,237,0.3)',
     paddingHorizontal: 8,
     paddingVertical: 3,
+    borderRadius: 6,
   },
-  badgeText: {
-    color: colors.white,
+  soonText: {
     fontSize: 11,
     fontFamily: fontFamily.bold,
+    color: '#c4b5fd',
     letterSpacing: 0.5,
   },
 
   // Étape 3 — comment ça marche
   howRow: {
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
+    gap: 16,
+    marginBottom: 20,
   },
   howIconWrap: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#eef2ff',
+    backgroundColor: 'rgba(37,99,235,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  howEmoji: {
-    fontSize: 22,
-  },
+  howEmoji: { fontSize: 22 },
   howTextWrap: {
     flex: 1,
     justifyContent: 'center',
@@ -460,38 +512,45 @@ const styles = StyleSheet.create({
   howTitle: {
     fontSize: 15,
     fontFamily: fontFamily.bold,
-    color: colors.textPrimary,
+    color: colors.white,
     marginBottom: 4,
   },
   howDescription: {
     fontSize: 14,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.55)',
     lineHeight: 20,
-  },
-  howConnector: {
-    // pas utilisé — spacing géré par marginBottom de howRow
   },
 
   // Commun
-  error: {
-    color: colors.atysDanger,
+  errorBox: {
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.3)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  errorText: {
+    color: '#fca5a5',
     fontSize: 14,
-    marginTop: theme.spacing.md,
+    fontFamily: fontFamily.regular,
     textAlign: 'center',
   },
-  button: {
-    backgroundColor: colors.atysBlue,
-    borderRadius: theme.borderRadius.md,
-    padding: 16,
+  submitBtn: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginTop: 32,
+  },
+  submitGradient: {
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: theme.spacing.xl,
-    minHeight: minTouch,
     justifyContent: 'center',
+    minHeight: minTouch,
   },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
+  btnDisabled: { opacity: 0.6 },
+  submitText: {
     color: colors.white,
     fontSize: 16,
     fontFamily: fontFamily.bold,

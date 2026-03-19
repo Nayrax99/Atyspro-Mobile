@@ -64,9 +64,33 @@ function RootNavigatorContent() {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="lead/[id]" options={{ title: 'Détail lead' }} />
-      <Stack.Screen name="account" options={{ title: 'Mon compte' }} />
-      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
+      <Stack.Screen
+        name="lead/[id]"
+        options={{
+          title: 'Détail lead',
+          headerStyle: { backgroundColor: '#0f172a' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '600', color: '#fff' },
+        }}
+      />
+      <Stack.Screen
+        name="account"
+        options={{
+          title: 'Mon compte',
+          headerStyle: { backgroundColor: '#0f172a' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '600', color: '#fff' },
+        }}
+      />
+      <Stack.Screen
+        name="notifications"
+        options={{
+          title: 'Notifications',
+          headerStyle: { backgroundColor: '#0f172a' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '600', color: '#fff' },
+        }}
+      />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="signup" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />

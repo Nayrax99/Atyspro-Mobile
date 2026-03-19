@@ -1,5 +1,5 @@
 /**
- * LeadsScreen - Liste leads via leads.service, pas de fetch direct
+ * LeadsScreen - Liste leads avec filtres compacts + pagination 10/page
  */
 
 import { LeadCard } from '@/src/components/leads/LeadCard';
@@ -14,25 +14,30 @@ import {
   Platform,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FileText } from 'lucide-react-native';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
 
-export type LeadStatusFilter = 'all' | 'needs_review' | 'incomplete' | 'complete';
+export type LeadStatusFilter = 'all' | 'new' | 'to_process' | 'complete' | 'incomplete';
 export type SortMode = 'priority' | 'recent';
 
 const STATUS_CHIPS: { value: LeadStatusFilter; label: string }[] = [
   { value: 'all', label: 'Tous' },
-  { value: 'needs_review', label: 'À vérifier' },
-  { value: 'incomplete', label: 'Incomplet' },
+  { value: 'new', label: 'Nouveau' },
+  { value: 'to_process', label: 'À traiter' },
   { value: 'complete', label: 'Traité' },
+  { value: 'incomplete', label: 'Incomplet' },
 ];
+
+const LEADS_PER_PAGE = 10;
 
 function searchMatches(lead: Lead, query: string): boolean {
   if (!query.trim()) return true;
@@ -45,7 +50,11 @@ function searchMatches(lead: Lead, query: string): boolean {
 
 function filterByStatus(lead: Lead, status: LeadStatusFilter): boolean {
   if (status === 'all') return true;
-  return lead.status === status;
+  if (status === 'new') return lead.status === 'new';
+  if (status === 'to_process') return lead.status === 'needs_review';
+  if (status === 'complete') return lead.status === 'complete';
+  if (status === 'incomplete') return lead.status === 'incomplete';
+  return true;
 }
 
 export default function LeadsScreen() {
@@ -56,6 +65,7 @@ export default function LeadsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatusFilter>('all');
   const [sortMode, setSortMode] = useState<SortMode>('priority');
+  const [page, setPage] = useState(1);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -72,6 +82,11 @@ export default function LeadsScreen() {
     void load();
   }, [load]);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, statusFilter, sortMode]);
+
   const filteredAndSortedLeads = useMemo(() => {
     let list = leads.filter((l) => searchMatches(l, searchQuery) && filterByStatus(l, statusFilter));
     if (sortMode === 'priority') {
@@ -82,6 +97,9 @@ export default function LeadsScreen() {
     return list;
   }, [leads, searchQuery, statusFilter, sortMode]);
 
+  const paginatedLeads = filteredAndSortedLeads.slice(0, page * LEADS_PER_PAGE);
+  const hasMore = paginatedLeads.length < filteredAndSortedLeads.length;
+
   const onRefresh = useCallback(() => {
     Keyboard.dismiss();
     void load(true);
@@ -89,6 +107,7 @@ export default function LeadsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Barre de recherche */}
       <View style={styles.searchRow}>
         <TextInput
           style={styles.searchInput}
@@ -100,38 +119,71 @@ export default function LeadsScreen() {
           accessibilityLabel="Rechercher par nom, téléphone ou adresse"
         />
       </View>
-      <View style={styles.chipsRow}>
-        {STATUS_CHIPS.map((chip) => (
+
+      {/* Chips statut + tri — 1 ligne scrollable */}
+      <View style={styles.filterBar}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScroll}
+        >
+          {STATUS_CHIPS.map((chip) => {
+            const isActive = statusFilter === chip.value;
+            return isActive ? (
+              <LinearGradient
+                key={chip.value}
+                colors={['#1A56DB', '#7c3aed']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.chip, styles.chipActiveGrad]}
+              >
+                <Pressable
+                  onPress={() => setStatusFilter(chip.value)}
+                  style={styles.chipInner}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Filtrer par ${chip.label}`}
+                  accessibilityState={{ selected: true }}
+                >
+                  <Text style={[styles.chipText, styles.chipTextActive]}>{chip.label}</Text>
+                </Pressable>
+              </LinearGradient>
+            ) : (
+              <Pressable
+                key={chip.value}
+                onPress={() => setStatusFilter(chip.value)}
+                style={[styles.chip, styles.chipInactive]}
+                accessibilityRole="button"
+                accessibilityLabel={`Filtrer par ${chip.label}`}
+                accessibilityState={{ selected: false }}
+              >
+                <Text style={styles.chipText}>{chip.label}</Text>
+              </Pressable>
+            );
+          })}
+          <View style={styles.sortDivider} />
           <Pressable
-            key={chip.value}
-            onPress={() => setStatusFilter(chip.value)}
-            style={[styles.chip, statusFilter === chip.value && styles.chipActive]}
+            onPress={() => setSortMode('priority')}
+            style={[styles.sortBtn, sortMode === 'priority' && styles.sortBtnActive]}
             accessibilityRole="button"
-            accessibilityLabel={`Filtrer par ${chip.label}`}
-            accessibilityState={{ selected: statusFilter === chip.value }}
+            accessibilityLabel="Trier par score"
+            accessibilityState={{ selected: sortMode === 'priority' }}
           >
-            <Text style={[styles.chipText, statusFilter === chip.value && styles.chipTextActive]}>{chip.label}</Text>
+            <Text style={[styles.sortBtnText, sortMode === 'priority' && styles.sortBtnTextActive]}>
+              Score
+            </Text>
           </Pressable>
-        ))}
-      </View>
-      <View style={styles.sortRow}>
-        <Text style={styles.sortLabel}>Tri :</Text>
-        <Pressable
-          onPress={() => setSortMode('priority')}
-          style={[styles.sortBtn, sortMode === 'priority' && styles.sortBtnActive]}
-          accessibilityRole="button"
-          accessibilityLabel="Trier par priorité"
-        >
-          <Text style={[styles.sortBtnText, sortMode === 'priority' && styles.sortBtnTextActive]}>Priorité</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setSortMode('recent')}
-          style={[styles.sortBtn, sortMode === 'recent' && styles.sortBtnActive]}
-          accessibilityRole="button"
-          accessibilityLabel="Trier par récence"
-        >
-          <Text style={[styles.sortBtnText, sortMode === 'recent' && styles.sortBtnTextActive]}>Récent</Text>
-        </Pressable>
+          <Pressable
+            onPress={() => setSortMode('recent')}
+            style={[styles.sortBtn, sortMode === 'recent' && styles.sortBtnActive]}
+            accessibilityRole="button"
+            accessibilityLabel="Trier par date"
+            accessibilityState={{ selected: sortMode === 'recent' }}
+          >
+            <Text style={[styles.sortBtnText, sortMode === 'recent' && styles.sortBtnTextActive]}>
+              Date
+            </Text>
+          </Pressable>
+        </ScrollView>
       </View>
 
       {loading && !refreshing && (
@@ -150,13 +202,18 @@ export default function LeadsScreen() {
 
       {!loading && !error && (
         <FlatList
-          data={filteredAndSortedLeads}
+          data={paginatedLeads}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={[styles.list, filteredAndSortedLeads.length === 0 && styles.listEmpty]}
+          contentContainerStyle={[styles.list, paginatedLeads.length === 0 && styles.listEmpty]}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           renderItem={({ item, index }) => <LeadCard lead={item} index={index} />}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.atysBlue]} tintColor={colors.atysBlue} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.atysBlue]}
+              tintColor={colors.atysBlue}
+            />
           }
           ListEmptyComponent={
             <EmptyState
@@ -164,6 +221,22 @@ export default function LeadsScreen() {
               title="Aucun lead pour le moment"
               subtitle="Les appels qualifiés par votre assistant apparaîtront ici"
             />
+          }
+          ListFooterComponent={
+            hasMore ? (
+              <Pressable
+                onPress={() => setPage((p) => p + 1)}
+                style={styles.loadMoreBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Charger plus de leads"
+              >
+                <Text style={styles.loadMoreText}>Charger plus</Text>
+              </Pressable>
+            ) : paginatedLeads.length > 0 ? (
+              <Text style={styles.endText}>
+                {filteredAndSortedLeads.length} lead{filteredAndSortedLeads.length > 1 ? 's' : ''} au total
+              </Text>
+            ) : null
           }
         />
       )}
@@ -193,47 +266,67 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     minHeight: minTouch,
   },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: 12,
+
+  // Barre de filtres + tri sur 1 ligne
+  filterBar: {
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderDefault,
   },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: colors.slate50,
-    minHeight: minTouch,
-    justifyContent: 'center',
-  },
-  chipActive: { backgroundColor: colors.atysBlue },
-  chipText: { fontSize: 14, fontFamily: fontFamily.semiBold, color: colors.slate700 },
-  chipTextActive: { color: colors.white },
-  sortRow: {
+  filterScroll: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 10,
-    backgroundColor: colors.white,
+    gap: 6,
   },
-  sortLabel: { fontSize: 14, fontFamily: fontFamily.regular, color: colors.slate600, marginRight: 4 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+  },
+  chipActiveGrad: {
+    shadowColor: '#1A56DB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  chipInactive: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+  },
+  chipInner: {},
+  chipText: { fontSize: 12, fontFamily: fontFamily.semiBold, color: colors.textSecondary },
+  chipTextActive: { color: colors.white },
+  sortDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: colors.borderDefault,
+    marginHorizontal: 4,
+  },
   sortBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: colors.slate50,
-    minHeight: 36,
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
   },
-  sortBtnActive: { backgroundColor: '#eef2ff' },
-  sortBtnText: { fontSize: 14, fontFamily: fontFamily.medium, color: colors.slate600 },
-  sortBtnTextActive: { fontFamily: fontFamily.semiBold, color: colors.atysBlue },
+  sortBtnActive: {
+    backgroundColor: '#EBF2FF',
+    borderColor: '#BFDBFE',
+  },
+  sortBtnText: {
+    fontSize: 12,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textSecondary,
+  },
+  sortBtnTextActive: {
+    color: colors.atysBlue,
+  },
+
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorCard: {
     margin: theme.spacing.md,
@@ -249,4 +342,25 @@ const styles = StyleSheet.create({
   list: { padding: theme.spacing.md, paddingBottom: 32 },
   listEmpty: { flex: 1 },
   separator: { height: 12 },
+  loadMoreBtn: {
+    marginTop: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.atysBlue,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontFamily: fontFamily.semiBold,
+    color: colors.atysBlue,
+  },
+  endText: {
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 13,
+    fontFamily: fontFamily.regular,
+    color: colors.slate500,
+  },
 });

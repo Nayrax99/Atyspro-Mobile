@@ -1,5 +1,5 @@
 /**
- * Écran d'inscription - nom entreprise, email, mot de passe, confirmation
+ * SignupScreen - Inscription — bloc dark en haut + carte formulaire claire
  */
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -8,22 +8,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/src/contexts/AuthContext';
-import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
-import { theme } from '@/src/constants/theme';
 
 const MIN_PASSWORD_LENGTH = 6;
 
 export default function SignupScreen() {
   const router = useRouter();
   const { signup, login } = useAuth();
+  const insets = useSafeAreaInsets();
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,21 +47,15 @@ export default function SignupScreen() {
       return;
     }
     setLoading(true);
-    const signupResult = await signup(
-      email.trim(),
-      password,
-      businessName.trim()
-    );
+    const signupResult = await signup(email.trim(), password, businessName.trim());
     if (!signupResult.success) {
-      setError(signupResult.error ?? 'Erreur lors de l\'inscription');
+      setError(signupResult.error ?? "Erreur lors de l'inscription");
       setLoading(false);
       return;
     }
     const loginResult = await login(email.trim(), password);
     setLoading(false);
-    if (loginResult.success) {
-      // RootNavigator redirigera vers les tabs
-    } else {
+    if (!loginResult.success) {
       setError(loginResult.error ?? 'Compte créé mais connexion échouée');
     }
   };
@@ -70,89 +65,144 @@ export default function SignupScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Text style={styles.logo} accessibilityRole="header">
-          ⚡ AtysPro
-        </Text>
-        <Text style={styles.subtitle}>
-          Votre assistant de leads intelligent
-        </Text>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Bloc dark en haut avec grille */}
+        <View style={[styles.darkHeader, { paddingTop: insets.top + 32 }]}>
+          {[48, 96, 144].map((top) => (
+            <View key={`h${top}`} style={[styles.gridLine, { top }]} />
+          ))}
+          {[80, 160, 240, 320].map((left) => (
+            <View key={`v${left}`} style={[styles.gridLineV, { left }]} />
+          ))}
+          <Text style={styles.darkLogo}>AtysPro</Text>
+          <Text style={styles.darkTagline}>{"Commencez gratuitement — sans carte bancaire."}</Text>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nom de l'entreprise"
-          placeholderTextColor={colors.placeholder}
-          value={businessName}
-          onChangeText={setBusinessName}
-          autoCapitalize="words"
-          editable={!loading}
-          accessibilityLabel="Nom de l'entreprise"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor={colors.placeholder}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!loading}
-          accessibilityLabel="Champ email"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Mot de passe (min. 6 caractères)"
-          placeholderTextColor={colors.placeholder}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          editable={!loading}
-          accessibilityLabel="Mot de passe"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmer le mot de passe"
-          placeholderTextColor={colors.placeholder}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-          editable={!loading}
-          accessibilityLabel="Confirmer le mot de passe"
-        />
+        {/* Contenu principal */}
+        <View style={[styles.mainContent, { paddingBottom: insets.bottom + 24 }]}>
+          {/* Badge */}
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>INSCRIPTION GRATUITE</Text>
+          </View>
 
-        {error ? (
-          <Text style={styles.error} accessibilityLiveRegion="polite">
-            {error}
+          <Text style={styles.title} accessibilityRole="header">
+            {'Créer un compte'}
           </Text>
-        ) : null}
-
-        <Pressable
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-          accessibilityLabel="Créer mon compte"
-          accessibilityRole="button"
-        >
-          {loading ? (
-            <ActivityIndicator color={colors.white} />
-          ) : (
-            <Text style={styles.buttonText}>Créer mon compte</Text>
-          )}
-        </Pressable>
-
-        <Pressable
-          style={styles.link}
-          onPress={() => router.push('/login')}
-          disabled={loading}
-          accessibilityLabel="Déjà un compte ? Se connecter"
-          accessibilityRole="link"
-        >
-          <Text style={styles.linkText}>
-            Déjà un compte ? Se connecter
+          <Text style={styles.subtitle}>
+            {"Rejoignez AtysPro et ne perdez plus un client."}
           </Text>
-        </Pressable>
-      </View>
+
+          {/* Carte formulaire */}
+          <View style={styles.card}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>{"NOM DE L'ENTREPRISE"}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex : Plomberie Martin"
+                placeholderTextColor="#9CA3AF"
+                value={businessName}
+                onChangeText={setBusinessName}
+                autoCapitalize="words"
+                editable={!loading}
+                accessibilityLabel="Nom de l'entreprise"
+                returnKeyType="next"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>ADRESSE EMAIL</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="vous@exemple.com"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+                accessibilityLabel="Adresse email"
+                returnKeyType="next"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>MOT DE PASSE</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Minimum 6 caractères"
+                placeholderTextColor="#9CA3AF"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!loading}
+                accessibilityLabel="Mot de passe"
+                returnKeyType="next"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>CONFIRMER LE MOT DE PASSE</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Répétez le mot de passe"
+                placeholderTextColor="#9CA3AF"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                editable={!loading}
+                accessibilityLabel="Confirmer le mot de passe"
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
+              />
+            </View>
+
+            {error ? (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText} accessibilityLiveRegion="polite">
+                  {error}
+                </Text>
+              </View>
+            ) : null}
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.submitBtn,
+                loading && styles.btnDisabled,
+                pressed && styles.btnPressed,
+              ]}
+              onPress={handleSubmit}
+              disabled={loading}
+              accessibilityLabel="Créer mon compte gratuitement"
+              accessibilityRole="button"
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitText}>{'Créer mon compte gratuitement'}</Text>
+              )}
+            </Pressable>
+          </View>
+
+          {/* Lien connexion */}
+          <Pressable
+            style={styles.switchLink}
+            onPress={() => router.push('/login')}
+            disabled={loading}
+            accessibilityLabel="Déjà un compte ? Se connecter"
+            accessibilityRole="link"
+          >
+            <Text style={styles.switchText}>
+              {'Déjà un compte ? '}
+              <Text style={styles.switchTextBold}>Se connecter</Text>
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -160,63 +210,161 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F0F2F7',
+  },
+
+  // Dark header
+  darkHeader: {
+    backgroundColor: '#0D1B38',
+    paddingBottom: 36,
+    alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  content: {
-    padding: theme.spacing.lg,
-    alignSelf: 'stretch',
+  gridLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
-  logo: {
-    color: colors.atysBlue,
+  gridLineV: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 1,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  darkLogo: {
     fontSize: 28,
     fontFamily: fontFamily.bold,
+    color: '#ffffff',
+    marginBottom: 8,
+  },
+  darkTagline: {
+    fontSize: 14,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
-    marginBottom: theme.spacing.xs,
+    paddingHorizontal: 24,
+  },
+
+  // Contenu
+  mainContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  badge: {
+    alignSelf: 'center',
+    backgroundColor: '#EBF2FF',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginBottom: 16,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontFamily: fontFamily.bold,
+    color: '#1A56DB',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: fontFamily.bold,
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 6,
   },
   subtitle: {
-    color: colors.textSecondary,
-    fontSize: 16,
+    fontSize: 14,
+    fontFamily: fontFamily.regular,
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: 20,
+  },
+
+  // Carte
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.08,
+    shadowRadius: 40,
+    elevation: 6,
+  },
+
+  // Inputs
+  inputGroup: { marginBottom: 16 },
+  inputLabel: {
+    fontSize: 12,
+    fontFamily: fontFamily.bold,
+    color: '#6B7280',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: colors.cardBackground,
+    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: theme.borderRadius.md,
-    padding: 14,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     fontSize: 16,
-    color: colors.textPrimary,
-    marginBottom: theme.spacing.md,
+    fontFamily: fontFamily.regular,
+    color: '#0F172A',
   },
-  error: {
-    color: colors.atysDanger,
+
+  // Erreur
+  errorBox: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  errorText: {
+    color: '#DC2626',
     fontSize: 14,
-    marginBottom: theme.spacing.md,
+    fontFamily: fontFamily.regular,
     textAlign: 'center',
   },
-  button: {
-    backgroundColor: colors.atysBlue,
-    borderRadius: theme.borderRadius.md,
-    padding: 14,
+
+  // Bouton
+  submitBtn: {
+    backgroundColor: '#1A56DB',
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: theme.spacing.sm,
+    justifyContent: 'center',
+    marginTop: 4,
+    minHeight: Platform.OS === 'android' ? 48 : 52,
   },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: colors.white,
+  btnPressed: { opacity: 0.88 },
+  btnDisabled: { opacity: 0.6 },
+  submitText: {
+    color: '#ffffff',
     fontSize: 16,
     fontFamily: fontFamily.bold,
   },
-  link: {
-    marginTop: theme.spacing.lg,
-    alignItems: 'center',
+
+  // Lien bas
+  switchLink: { alignItems: 'center', paddingVertical: 8 },
+  switchText: {
+    fontSize: 14,
+    fontFamily: fontFamily.regular,
+    color: '#6B7280',
   },
-  linkText: {
-    color: colors.atysBlue,
-    fontSize: 15,
+  switchTextBold: {
+    fontFamily: fontFamily.bold,
+    color: '#1A56DB',
   },
 });
