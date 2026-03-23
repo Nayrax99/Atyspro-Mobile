@@ -16,6 +16,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Eye, EyeOff } from 'lucide-react-native';
+
 import { useAuth } from '@/src/contexts/AuthContext';
 import { fontFamily } from '@/src/constants/typography';
 
@@ -36,6 +38,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async () => {
     setError(null);
@@ -108,18 +111,37 @@ export default function LoginScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>MOT DE PASSE</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Votre mot de passe"
-                placeholderTextColor="#9CA3AF"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!loading}
-                accessibilityLabel="Mot de passe"
-                returnKeyType="done"
-                onSubmitEditing={handleSubmit}
-              />
+              <View style={{ position: 'relative' }}>
+                <TextInput
+                  style={[styles.input, { paddingRight: 46 }]}
+                  placeholder="Votre mot de passe"
+                  placeholderTextColor="#9CA3AF"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  editable={!loading}
+                  accessibilityLabel="Mot de passe"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSubmit}
+                />
+                <Pressable
+                  onPress={() => setShowPassword((v) => !v)}
+                  style={{
+                    position: 'absolute',
+                    right: 14,
+                    top: 0,
+                    bottom: 0,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                  accessibilityLabel={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                >
+                  {showPassword
+                    ? <EyeOff size={18} color="#94A3B8" />
+                    : <Eye size={18} color="#94A3B8" />
+                  }
+                </Pressable>
+              </View>
             </View>
 
             {error ? (
