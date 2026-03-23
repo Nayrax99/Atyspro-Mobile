@@ -16,6 +16,10 @@ import { theme } from '@/src/constants/theme';
 import type { Lead } from '@/src/services/leads.service';
 import { formatPhone, formatRelativeTime, formatType } from '@/src/utils/format';
 
+function shortId(id: string): string {
+  return `#${id.slice(0, 8)}`;
+}
+
 interface LeadCardProps {
   lead: Lead;
   index?: number;
@@ -85,6 +89,9 @@ export function LeadCard({ lead, index = 0 }: LeadCardProps) {
               )}
             </View>
           </View>
+          <Text style={{ fontSize: 10, color: colors.slate400, fontFamily: fontFamily.regular, marginTop: 8 }}>
+            {shortId(lead.id)}
+          </Text>
         </View>
       </Pressable>
     </Animated.View>
