@@ -4,7 +4,7 @@
 
 import { apiGet, apiPatch } from './api';
 
-export type LeadStatus = 'complete' | 'incomplete' | 'needs_review';
+export type LeadStatus = 'nouveau' | 'incomplet' | 'a_traiter' | 'traite';
 
 export interface Lead {
   id: string;

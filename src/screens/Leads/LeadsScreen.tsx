@@ -26,15 +26,15 @@ import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
 
-export type LeadStatusFilter = 'all' | 'new' | 'to_process' | 'complete' | 'incomplete';
+export type LeadStatusFilter = 'all' | 'nouveau' | 'a_traiter' | 'traite' | 'incomplet';
 export type SortMode = 'priority' | 'recent';
 
 const STATUS_CHIPS: { value: LeadStatusFilter; label: string }[] = [
-  { value: 'all', label: 'Tous' },
-  { value: 'new', label: 'Nouveau' },
-  { value: 'to_process', label: 'À traiter' },
-  { value: 'complete', label: 'Traité' },
-  { value: 'incomplete', label: 'Incomplet' },
+  { value: 'all',       label: 'Tous' },
+  { value: 'nouveau',   label: 'Nouveau' },
+  { value: 'a_traiter', label: 'À traiter' },
+  { value: 'traite',    label: 'Traité' },
+  { value: 'incomplet', label: 'Incomplet' },
 ];
 
 const LEADS_PER_PAGE = 10;
@@ -50,11 +50,7 @@ function searchMatches(lead: Lead, query: string): boolean {
 
 function filterByStatus(lead: Lead, status: LeadStatusFilter): boolean {
   if (status === 'all') return true;
-  if (status === 'new') return lead.status === 'new';
-  if (status === 'to_process') return lead.status === 'needs_review';
-  if (status === 'complete') return lead.status === 'complete';
-  if (status === 'incomplete') return lead.status === 'incomplete';
-  return true;
+  return lead.status === status;
 }
 
 export default function LeadsScreen() {

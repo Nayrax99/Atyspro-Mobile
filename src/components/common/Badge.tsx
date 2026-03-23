@@ -7,13 +7,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 
-export type BadgeVariant = 'urgent' | 'needs_review' | 'incomplete' | 'complete' | 'neutral';
+export type BadgeVariant = 'urgent' | 'nouveau' | 'a_traiter' | 'incomplet' | 'traite' | 'neutral';
 
 const gradientMap: Record<Exclude<BadgeVariant, 'neutral'>, readonly [string, string]> = {
-  urgent: ['#ef4444', '#DC2626'],
-  needs_review: ['#f59e0b', '#D97706'],
-  incomplete: ['#f59e0b', '#D97706'],
-  complete: ['#16A34A', '#059669'],
+  urgent:    ['#ef4444', '#DC2626'],
+  nouveau:   ['#3b82f6', '#1A56DB'],
+  a_traiter: ['#f59e0b', '#D97706'],
+  incomplet: ['#94a3b8', '#64748b'],
+  traite:    ['#16A34A', '#059669'],
 };
 
 interface BadgeProps {

@@ -59,17 +59,18 @@ function DetailRow({ label, value }: DetailRowProps) {
 }
 
 const STATUS_BUTTONS: { status: LeadStatus; label: string; variant: BadgeVariant }[] = [
-  { status: 'needs_review', label: 'À traiter', variant: 'needs_review' },
-  { status: 'incomplete', label: 'Incomplet', variant: 'incomplete' },
-  { status: 'complete', label: 'Traité ✓', variant: 'complete' },
+  { status: 'a_traiter', label: 'À traiter', variant: 'a_traiter' },
+  { status: 'incomplet', label: 'Incomplet', variant: 'incomplet' },
+  { status: 'traite',    label: 'Traité ✓',  variant: 'traite' },
 ];
 
 const variantActiveColors: Record<BadgeVariant, { bg: string; border: string; text: string }> = {
-  needs_review: { bg: '#fef3c7', border: colors.atysWarning, text: colors.atysWarning },
-  incomplete: { bg: colors.slate100, border: colors.slate400, text: colors.slate600 },
-  complete: { bg: '#d1fae5', border: '#34d399', text: colors.atysSuccess },
-  urgent: { bg: '#fee2e2', border: colors.atysDanger, text: colors.atysDanger },
-  neutral: { bg: '#eef2ff', border: colors.atysBlue, text: colors.atysBlue },
+  a_traiter: { bg: '#fef3c7', border: colors.atysWarning, text: colors.atysWarning },
+  incomplet:  { bg: colors.slate100, border: colors.slate400, text: colors.slate600 },
+  traite:     { bg: '#d1fae5', border: '#34d399', text: colors.atysSuccess },
+  urgent:     { bg: '#fee2e2', border: colors.atysDanger, text: colors.atysDanger },
+  neutral:    { bg: '#eef2ff', border: colors.atysBlue, text: colors.atysBlue },
+  nouveau:    { bg: '#eff6ff', border: colors.atysBlue, text: colors.atysBlue },
 };
 
 export default function LeadDetailScreen() {
@@ -147,22 +148,25 @@ export default function LeadDetailScreen() {
   }
 
   const phone = lead?.client_phone || lead?.phone;
-  const isComplete = lead?.status === 'complete' || lead?.status === 'processed';
   const statusVariant: BadgeVariant =
-    lead?.status === 'needs_review'
-      ? 'needs_review'
-      : lead?.status === 'incomplete'
-      ? 'incomplete'
-      : isComplete
-      ? 'complete'
+    lead?.status === 'a_traiter'
+      ? 'a_traiter'
+      : lead?.status === 'incomplet'
+      ? 'incomplet'
+      : lead?.status === 'traite'
+      ? 'traite'
+      : lead?.status === 'nouveau'
+      ? 'nouveau'
       : 'neutral';
   const statusLabel =
-    lead?.status === 'needs_review'
-      ? 'À vérifier'
-      : lead?.status === 'incomplete'
+    lead?.status === 'a_traiter'
+      ? 'À traiter'
+      : lead?.status === 'incomplet'
       ? 'Incomplet'
-      : isComplete
+      : lead?.status === 'traite'
       ? 'Traité'
+      : lead?.status === 'nouveau'
+      ? 'Nouveau'
       : lead?.status ?? '—';
 
   const transcription = (lead?.description as string | null) || (lead?.raw_message as string | null);
