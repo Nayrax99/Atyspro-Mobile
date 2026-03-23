@@ -28,7 +28,7 @@ function getLeadDisplayName(lead: Lead): string {
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 function isNew(lead: Lead): boolean {
-  if (lead.status === 'new') return true;
+  if (lead.status === 'nouveau') return true;
   const created = new Date(lead.created_at).getTime();
   return Date.now() - created < ONE_DAY_MS;
 }
