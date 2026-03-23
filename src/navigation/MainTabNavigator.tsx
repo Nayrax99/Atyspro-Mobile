@@ -22,7 +22,7 @@ export default function MainTabNavigator() {
   useEffect(() => {
     fetchLeads().then(({ data }) => {
       const count = data.filter(
-        (l) => l.status === 'needs_review' || l.status === 'incomplete'
+        (l) => l.status === 'a_traiter' || l.status === 'incomplet' || l.status === 'nouveau'
       ).length;
       setPendingCount(count > 0 ? count : undefined);
     });

@@ -101,8 +101,8 @@ export default function HomeScreen() {
   }
 
   const todayLeads = leads.filter((l) => isToday(l.created_at));
-  const pendingLeads = leads.filter((l) => l.status === 'needs_review' || l.status === 'incomplete');
-  const completeLeads = leads.filter((l) => l.status === 'complete');
+  const pendingLeads = leads.filter((l) => l.status === 'a_traiter' || l.status === 'incomplet' || l.status === 'nouveau');
+  const completeLeads = leads.filter((l) => l.status === 'traite');
   const treatmentRate = leads.length > 0 ? Math.round((completeLeads.length / leads.length) * 100) : 0;
 
   const hasPending = pendingLeads.length > 0;
