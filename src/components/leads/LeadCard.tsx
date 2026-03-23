@@ -63,16 +63,6 @@ export function LeadCard({ lead, index = 0 }: LeadCardProps) {
               {name}
             </Text>
             <View style={styles.headerRight}>
-              {showNewBadge && (
-                <LinearGradient
-                  colors={['#ef4444', '#DC2626']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.newBadge}
-                >
-                  <Text style={styles.newBadgeText}>NOUVEAU</Text>
-                </LinearGradient>
-              )}
               <ScoreBadge score={score} />
             </View>
           </View>
@@ -81,7 +71,19 @@ export function LeadCard({ lead, index = 0 }: LeadCardProps) {
           </Text>
           <View style={styles.footer}>
             {missionType !== 'Non renseigné' && <Tag label={missionType} variant="primary" />}
-            <Text style={styles.time}>{relativeTime}</Text>
+            <View style={styles.footerRight}>
+              <Text style={styles.time}>{relativeTime}</Text>
+              {showNewBadge && (
+                <LinearGradient
+                  colors={['#1A56DB', '#7c3aed']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.newBadge}
+                >
+                  <Text style={styles.newBadgeText}>Nouveau</Text>
+                </LinearGradient>
+              )}
+            </View>
           </View>
         </View>
       </Pressable>
@@ -128,13 +130,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   newBadge: {
-    borderRadius: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   newBadgeText: {
     fontSize: 9,
-    fontFamily: fontFamily.bold,
+    fontFamily: fontFamily.semiBold,
     color: '#ffffff',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -148,7 +150,13 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 10,
+  },
+  footerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   time: {
     fontSize: 12,
