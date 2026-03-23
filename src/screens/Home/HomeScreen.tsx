@@ -123,7 +123,7 @@ export default function HomeScreen() {
             <>
               Vous avez{' '}
               <Text style={[styles.summaryHighlight, { color: colors.atysBlue }]}>
-                {pendingLeads.length} lead{pendingLeads.length > 1 ? 's' : ''} à traiter
+                {pendingLeads.length} demande{pendingLeads.length > 1 ? 's' : ''} à traiter
               </Text>{' '}
               {"aujourd'hui"}
             </>
@@ -132,7 +132,7 @@ export default function HomeScreen() {
               <Text style={[styles.summaryHighlight, { color: colors.atysSuccess }]}>
                 Tout est à jour
               </Text>
-              , aucun lead en attente
+              , aucune demande en attente
             </>
           )}
         </Text>
@@ -154,7 +154,7 @@ export default function HomeScreen() {
           iconBg={colors.atysViolet + '18'}
           borderColor={colors.atysViolet}
           value={leads.length}
-          label="NOUVEAUX LEADS"
+          label="NOUVELLES DEMANDES"
           sub={`${pendingLeads.length} à traiter`}
           subColor={colors.atysViolet}
         />
@@ -167,7 +167,7 @@ export default function HomeScreen() {
           borderColor={colors.atysSuccess}
           value={`${treatmentRate}%`}
           label="TAUX DE TRAITEMENT"
-          sub="leads traités"
+          sub="demandes traitées"
           subColor={colors.atysSuccess}
         />
       </View>

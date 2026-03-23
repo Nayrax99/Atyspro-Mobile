@@ -59,7 +59,7 @@ export default function MainTabNavigator() {
       <Tabs.Screen
         name="leads"
         options={{
-          title: 'Leads',
+          title: 'Demandes',
           tabBarBadge: pendingCount,
           tabBarBadgeStyle: { backgroundColor: colors.atysDanger, fontSize: 10 },
           tabBarIcon: ({ color, focused }) => (

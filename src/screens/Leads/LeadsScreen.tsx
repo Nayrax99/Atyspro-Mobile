@@ -214,7 +214,7 @@ export default function LeadsScreen() {
           ListEmptyComponent={
             <EmptyState
               icon={FileText}
-              title="Aucun lead pour le moment"
+              title="Aucune demande pour le moment"
               subtitle="Les appels qualifiés par votre assistant apparaîtront ici"
             />
           }
@@ -224,13 +224,13 @@ export default function LeadsScreen() {
                 onPress={() => setPage((p) => p + 1)}
                 style={styles.loadMoreBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Charger plus de leads"
+                accessibilityLabel="Charger plus de demandes"
               >
                 <Text style={styles.loadMoreText}>Charger plus</Text>
               </Pressable>
             ) : paginatedLeads.length > 0 ? (
               <Text style={styles.endText}>
-                {filteredAndSortedLeads.length} lead{filteredAndSortedLeads.length > 1 ? 's' : ''} au total
+                {filteredAndSortedLeads.length} demande{filteredAndSortedLeads.length > 1 ? 's' : ''} au total
               </Text>
             ) : null
           }
