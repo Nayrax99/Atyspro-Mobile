@@ -22,6 +22,7 @@ export interface Lead {
   delay_code?: number | null;
   value_estimate?: 'low' | 'medium' | 'high' | null;
   relance_count?: number | null;
+  description?: string | null;
   [key: string]: unknown;
 }
 

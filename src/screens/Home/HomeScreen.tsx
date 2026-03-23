@@ -13,6 +13,7 @@ import { Phone, FileText, TrendingUp } from 'lucide-react-native';
 
 import { fetchLeads } from '@/src/services/leads.service';
 import type { Lead } from '@/src/services/leads.service';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
@@ -82,8 +83,12 @@ function BarChart({ leads }: { leads: Lead[] }) {
 }
 
 export default function HomeScreen() {
+  const { account } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  const firstName = (account as Record<string, unknown>)?.first_name as string | null | undefined;
+  const greeting = firstName ? `Bonjour, ${firstName}` : 'Bonjour';
 
   const load = useCallback(async () => {
     const { data } = await fetchLeads();
@@ -117,7 +122,7 @@ export default function HomeScreen() {
     >
       {/* Résumé du jour */}
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>Résumé du jour</Text>
+        <Text style={styles.summaryTitle}>{greeting}</Text>
         <Text style={styles.summaryText}>
           {hasPending ? (
             <>

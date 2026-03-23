@@ -1,22 +1,22 @@
 /**
- * LeadCard - Carte lead (nom, tél, tag, temps relatif, ScoreBadge)
- * Barre gauche gradient bleu→violet + borderRadius 24
+ * LeadCard - Carte lead redesignée
+ * Ligne 1 : Nom + Score (coloré urgence)
+ * Ligne 2 : Extrait description + date relative
+ * Ligne 3 : Badge statut + badge Nouveau
+ * Barre gauche colorée selon urgence du score
  */
 
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 
-import { ScoreBadge } from './ScoreBadge';
 import { Badge } from '../common/Badge';
 import type { BadgeVariant } from '../common/Badge';
-import { Tag } from '../common/Tag';
 import { useCardEntrance } from '@/src/hooks/useCardEntrance';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
 import type { Lead } from '@/src/services/leads.service';
-import { formatPhone, formatRelativeTime, formatType } from '@/src/utils/format';
+import { formatRelativeTime, formatType } from '@/src/utils/format';
 
 const STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
   nouveau:   { variant: 'nouveau',   label: 'Nouveau' },
@@ -41,16 +41,32 @@ function isNew(lead: Lead): boolean {
   return Date.now() - created < ONE_DAY_MS;
 }
 
+function getScoreColor(score: number): { bar: string; text: string; bg: string } {
+  if (score >= 70) return { bar: '#ef4444', text: '#dc2626', bg: '#fee2e2' };
+  if (score >= 40) return { bar: '#f97316', text: '#ea580c', bg: '#ffedd5' };
+  return { bar: '#94a3b8', text: '#64748b', bg: '#f1f5f9' };
+}
+
+function getExcerpt(lead: Lead): string {
+  const desc = lead.description;
+  if (desc && desc.trim()) {
+    const trimmed = desc.trim();
+    return trimmed.length > 40 ? trimmed.slice(0, 40) + '…' : trimmed;
+  }
+  const type = formatType(lead);
+  return type !== 'Non renseigné' ? type : '—';
+}
+
 export function LeadCard({ lead, index = 0 }: LeadCardProps) {
   const router = useRouter();
   const name = getLeadDisplayName(lead);
-  const phone = lead.client_phone || lead.phone;
   const score = lead.priority_score ?? lead.score ?? 0;
-  const missionType = formatType(lead);
   const relativeTime = formatRelativeTime(lead.created_at);
   const animStyle = useCardEntrance(index);
   const showNewBadge = isNew(lead);
   const statusBadge = STATUS_BADGE[lead.status];
+  const scoreColor = getScoreColor(score);
+  const excerpt = getExcerpt(lead);
 
   return (
     <Animated.View style={animStyle}>
@@ -60,42 +76,34 @@ export function LeadCard({ lead, index = 0 }: LeadCardProps) {
         accessibilityRole="button"
         accessibilityLabel={`Ouvrir le lead ${name}`}
       >
-        <LinearGradient
-          colors={['#1A56DB', '#7c3aed']}
-          style={styles.leftBar}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
+        <View style={[styles.leftBar, { backgroundColor: scoreColor.bar }]} />
         <View style={styles.content}>
+          {/* Ligne 1 : Nom + Score */}
           <View style={styles.header}>
             <Text style={styles.name} numberOfLines={1}>
               {name}
             </Text>
-            <View style={styles.headerRight}>
-              <ScoreBadge score={score} />
+            <View style={[styles.scoreBadge, { backgroundColor: scoreColor.bg }]}>
+              <Text style={[styles.scoreText, { color: scoreColor.text }]}>{score}</Text>
             </View>
           </View>
-          <Text style={styles.phone} numberOfLines={1}>
-            {formatPhone(phone)}
-          </Text>
+
+          {/* Ligne 2 : Extrait + date */}
+          <View style={styles.middleRow}>
+            <Text style={styles.excerpt} numberOfLines={1}>
+              {excerpt}
+            </Text>
+            <Text style={styles.time}>{relativeTime}</Text>
+          </View>
+
+          {/* Ligne 3 : Badges */}
           <View style={styles.footer}>
-            <View style={styles.footerLeft}>
-              {missionType !== 'Non renseigné' && <Tag label={missionType} variant="primary" />}
-              {statusBadge && <Badge label={statusBadge.label} variant={statusBadge.variant} />}
-            </View>
-            <View style={styles.footerRight}>
-              <Text style={styles.time}>{relativeTime}</Text>
-              {showNewBadge && (
-                <LinearGradient
-                  colors={['#1A56DB', '#7c3aed']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.newBadge}
-                >
-                  <Text style={styles.newBadgeText}>Nouveau</Text>
-                </LinearGradient>
-              )}
-            </View>
+            {statusBadge && <Badge label={statusBadge.label} variant={statusBadge.variant} />}
+            {showNewBadge && (
+              <View style={styles.newBadge}>
+                <Text style={styles.newBadgeText}>Nouveau</Text>
+              </View>
+            )}
           </View>
         </View>
       </Pressable>
@@ -122,65 +130,66 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: theme.spacing.lg,
+    gap: 6,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 8,
   },
   name: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: fontFamily.bold,
     color: colors.textPrimary,
     flex: 1,
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  newBadge: {
+  scoreBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    minWidth: 34,
+    alignItems: 'center',
   },
-  newBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.semiBold,
-    color: '#ffffff',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+  scoreText: {
+    fontSize: 13,
+    fontFamily: fontFamily.bold,
   },
-  phone: {
-    fontSize: 15,
-    fontFamily: fontFamily.semiBold,
-    color: colors.textSecondary,
-    marginBottom: 10,
-  },
-  footer: {
+  middleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10,
-    flexWrap: 'wrap',
+    gap: 8,
   },
-  footerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexWrap: 'wrap',
+  excerpt: {
+    fontSize: 13,
+    fontFamily: fontFamily.regular,
+    color: colors.textSecondary,
     flex: 1,
-  },
-  footerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   time: {
     fontSize: 12,
     fontFamily: fontFamily.medium,
     color: colors.textMuted,
+    flexShrink: 0,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  newBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    backgroundColor: '#DBEAFE',
+  },
+  newBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.semiBold,
+    color: '#1D4ED8',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });

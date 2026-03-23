@@ -69,9 +69,13 @@ function SettingRow({
 export default function AccountScreen() {
   const { account, user, logout, refreshAuth } = useAuth();
 
+  const acc = account as Record<string, unknown>;
   const [nameValue, setNameValue] = useState(account?.name ?? '');
-  const [cityValue, setCityValue] = useState((account as Record<string, unknown>)?.city as string ?? '');
-  const [specialty] = useState((account as Record<string, unknown>)?.specialty as string ?? '');
+  const [firstNameValue, setFirstNameValue] = useState(acc?.first_name as string ?? '');
+  const [lastNameValue, setLastNameValue] = useState(acc?.last_name as string ?? '');
+  const [companyNameValue, setCompanyNameValue] = useState(acc?.company_name as string ?? '');
+  const [cityValue, setCityValue] = useState(acc?.city as string ?? '');
+  const [specialty] = useState(acc?.specialty as string ?? '');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -80,22 +84,31 @@ export default function AccountScreen() {
 
   useEffect(() => {
     if (account) {
+      const a = account as Record<string, unknown>;
       setNameValue(account.name ?? '');
-      const acc = account as Record<string, unknown>;
-      setCityValue(typeof acc.city === 'string' ? acc.city : '');
+      setFirstNameValue(typeof a.first_name === 'string' ? a.first_name : '');
+      setLastNameValue(typeof a.last_name === 'string' ? a.last_name : '');
+      setCompanyNameValue(typeof a.company_name === 'string' ? a.company_name : '');
+      setCityValue(typeof a.city === 'string' ? a.city : '');
     }
   }, [account]);
 
   const isDirty =
     nameValue !== (account?.name ?? '') ||
-    cityValue !== ((account as Record<string, unknown>)?.city as string ?? '');
+    firstNameValue !== (typeof acc?.first_name === 'string' ? acc.first_name : '') ||
+    lastNameValue !== (typeof acc?.last_name === 'string' ? acc.last_name : '') ||
+    companyNameValue !== (typeof acc?.company_name === 'string' ? acc.company_name : '') ||
+    cityValue !== (typeof acc?.city === 'string' ? acc.city : '');
 
   async function handleSave() {
     if (saving) return;
     setSaving(true);
     setSaveError(null);
-    const res = await apiPatch('/api/auth/me', {
+    const res = await apiPatch('/api/account', {
       name: nameValue,
+      first_name: firstNameValue,
+      last_name: lastNameValue,
+      company_name: companyNameValue,
       city: cityValue,
       specialty,
     });
@@ -128,9 +141,10 @@ export default function AccountScreen() {
     setShowAvatarPicker(false);
   }
 
-  const initials = nameValue
-    ? nameValue.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
-    : (account?.name || 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const displayName = firstNameValue && lastNameValue
+    ? `${firstNameValue} ${lastNameValue}`
+    : companyNameValue || nameValue || account?.name || 'U';
+  const initials = displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -158,7 +172,7 @@ export default function AccountScreen() {
             <Camera size={12} color={colors.white} />
           </View>
         </Pressable>
-        <Text style={styles.profileName}>{nameValue || account?.name || 'Mon compte'}</Text>
+        <Text style={styles.profileName}>{displayName}</Text>
         <Text style={styles.profileEmail}>{user?.email ?? ''}</Text>
       </View>
 
@@ -166,18 +180,75 @@ export default function AccountScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Mon profil</Text>
         <View style={styles.card}>
+          {/* PRÉNOM */}
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>PRÉNOM</Text>
+            <View style={styles.fieldInputRow}>
+              <TextInput
+                style={styles.fieldInput}
+                value={firstNameValue}
+                onChangeText={setFirstNameValue}
+                placeholder="Jean"
+                placeholderTextColor={colors.placeholder}
+                returnKeyType="done"
+                accessibilityLabel="Prénom"
+              />
+              <Pencil size={14} color={colors.slate400} />
+            </View>
+          </View>
+
+          <View style={styles.separator} />
+
           {/* NOM */}
           <View style={styles.fieldRow}>
             <Text style={styles.fieldLabel}>NOM</Text>
             <View style={styles.fieldInputRow}>
               <TextInput
                 style={styles.fieldInput}
-                value={nameValue}
-                onChangeText={setNameValue}
+                value={lastNameValue}
+                onChangeText={setLastNameValue}
+                placeholder="Dupont"
+                placeholderTextColor={colors.placeholder}
+                returnKeyType="done"
+                accessibilityLabel="Nom de famille"
+              />
+              <Pencil size={14} color={colors.slate400} />
+            </View>
+          </View>
+
+          <View style={styles.separator} />
+
+          {/* ENTREPRISE */}
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>ENTREPRISE</Text>
+            <View style={styles.fieldInputRow}>
+              <TextInput
+                style={styles.fieldInput}
+                value={companyNameValue}
+                onChangeText={setCompanyNameValue}
                 placeholder="Nom de votre entreprise"
                 placeholderTextColor={colors.placeholder}
                 returnKeyType="done"
-                accessibilityLabel="Nom"
+                accessibilityLabel="Entreprise"
+              />
+              <Pencil size={14} color={colors.slate400} />
+            </View>
+          </View>
+
+          <View style={styles.separator} />
+
+          {/* NOM COMPTE (legacy) */}
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>NOM COMPTE</Text>
+            <View style={styles.fieldInputRow}>
+              <TextInput
+                style={styles.fieldInput}
+                value={nameValue}
+                onChangeText={setNameValue}
+                placeholder="Nom affiché sur le compte"
+                placeholderTextColor={colors.placeholder}
+                returnKeyType="done"
+                accessibilityLabel="Nom compte"
               />
               <Pencil size={14} color={colors.slate400} />
             </View>
