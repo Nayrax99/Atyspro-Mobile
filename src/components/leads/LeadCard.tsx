@@ -8,6 +8,8 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { ScoreBadge } from './ScoreBadge';
+import { Badge } from '../common/Badge';
+import type { BadgeVariant } from '../common/Badge';
 import { Tag } from '../common/Tag';
 import { useCardEntrance } from '@/src/hooks/useCardEntrance';
 import { colors } from '@/src/constants/colors';
@@ -16,9 +18,12 @@ import { theme } from '@/src/constants/theme';
 import type { Lead } from '@/src/services/leads.service';
 import { formatPhone, formatRelativeTime, formatType } from '@/src/utils/format';
 
-function shortId(id: string): string {
-  return `#${id.slice(0, 8)}`;
-}
+const STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
+  nouveau:   { variant: 'nouveau',   label: 'Nouveau' },
+  a_traiter: { variant: 'a_traiter', label: 'À traiter' },
+  incomplet: { variant: 'incomplet', label: 'Incomplet' },
+  traite:    { variant: 'traite',    label: 'Traité' },
+};
 
 interface LeadCardProps {
   lead: Lead;
@@ -32,7 +37,6 @@ function getLeadDisplayName(lead: Lead): string {
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 function isNew(lead: Lead): boolean {
-  if (lead.status === 'nouveau') return true;
   const created = new Date(lead.created_at).getTime();
   return Date.now() - created < ONE_DAY_MS;
 }
@@ -46,6 +50,7 @@ export function LeadCard({ lead, index = 0 }: LeadCardProps) {
   const relativeTime = formatRelativeTime(lead.created_at);
   const animStyle = useCardEntrance(index);
   const showNewBadge = isNew(lead);
+  const statusBadge = STATUS_BADGE[lead.status];
 
   return (
     <Animated.View style={animStyle}>
@@ -74,7 +79,10 @@ export function LeadCard({ lead, index = 0 }: LeadCardProps) {
             {formatPhone(phone)}
           </Text>
           <View style={styles.footer}>
-            {missionType !== 'Non renseigné' && <Tag label={missionType} variant="primary" />}
+            <View style={styles.footerLeft}>
+              {missionType !== 'Non renseigné' && <Tag label={missionType} variant="primary" />}
+              {statusBadge && <Badge label={statusBadge.label} variant={statusBadge.variant} />}
+            </View>
             <View style={styles.footerRight}>
               <Text style={styles.time}>{relativeTime}</Text>
               {showNewBadge && (
@@ -89,9 +97,6 @@ export function LeadCard({ lead, index = 0 }: LeadCardProps) {
               )}
             </View>
           </View>
-          <Text style={{ fontSize: 10, color: colors.slate400, fontFamily: fontFamily.regular, marginTop: 8 }}>
-            {shortId(lead.id)}
-          </Text>
         </View>
       </Pressable>
     </Animated.View>
@@ -159,6 +164,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
+    flexWrap: 'wrap',
+  },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+    flex: 1,
   },
   footerRight: {
     flexDirection: 'row',

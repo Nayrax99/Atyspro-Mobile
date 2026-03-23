@@ -7,6 +7,7 @@ import { EmptyState } from '@/src/components/common/EmptyState';
 import { fetchLeads } from '@/src/services/leads.service';
 import type { Lead } from '@/src/services/leads.service';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
   FlatList,
@@ -28,10 +29,10 @@ import { theme } from '@/src/constants/theme';
 
 export type LeadStatusFilter = 'all' | 'nouveau' | 'a_traiter' | 'traite' | 'incomplet';
 export type SortMode = 'priority' | 'recent';
+export type SortDir = 'asc' | 'desc';
 
 const STATUS_CHIPS: { value: LeadStatusFilter; label: string }[] = [
   { value: 'all',       label: 'Tous' },
-  { value: 'nouveau',   label: 'Nouveau' },
   { value: 'a_traiter', label: 'À traiter' },
   { value: 'traite',    label: 'Traité' },
   { value: 'incomplet', label: 'Incomplet' },
@@ -61,6 +62,7 @@ export default function LeadsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatusFilter>('all');
   const [sortMode, setSortMode] = useState<SortMode>('priority');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(1);
 
   const load = useCallback(async (isRefresh = false) => {
@@ -78,10 +80,17 @@ export default function LeadsScreen() {
     void load();
   }, [load]);
 
+  // Re-fetch when navigating back to this screen (e.g., after status change in detail)
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load])
+  );
+
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, statusFilter, sortMode]);
+  }, [searchQuery, statusFilter, sortMode, sortDir]);
 
   const filteredAndSortedLeads = useMemo(() => {
     let list = leads.filter((l) => searchMatches(l, searchQuery) && filterByStatus(l, statusFilter));
@@ -90,8 +99,9 @@ export default function LeadsScreen() {
     } else {
       list = [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
+    if (sortDir === 'asc') list = list.reverse();
     return list;
-  }, [leads, searchQuery, statusFilter, sortMode]);
+  }, [leads, searchQuery, statusFilter, sortMode, sortDir]);
 
   const paginatedLeads = filteredAndSortedLeads.slice(0, page * LEADS_PER_PAGE);
   const hasMore = paginatedLeads.length < filteredAndSortedLeads.length;
@@ -158,25 +168,31 @@ export default function LeadsScreen() {
           })}
           <View style={styles.sortDivider} />
           <Pressable
-            onPress={() => setSortMode('priority')}
+            onPress={() => {
+              if (sortMode === 'priority') setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+              else { setSortMode('priority'); setSortDir('desc'); }
+            }}
             style={[styles.sortBtn, sortMode === 'priority' && styles.sortBtnActive]}
             accessibilityRole="button"
             accessibilityLabel="Trier par score"
             accessibilityState={{ selected: sortMode === 'priority' }}
           >
             <Text style={[styles.sortBtnText, sortMode === 'priority' && styles.sortBtnTextActive]}>
-              Score
+              Score {sortMode === 'priority' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => setSortMode('recent')}
+            onPress={() => {
+              if (sortMode === 'recent') setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+              else { setSortMode('recent'); setSortDir('desc'); }
+            }}
             style={[styles.sortBtn, sortMode === 'recent' && styles.sortBtnActive]}
             accessibilityRole="button"
             accessibilityLabel="Trier par date"
             accessibilityState={{ selected: sortMode === 'recent' }}
           >
             <Text style={[styles.sortBtnText, sortMode === 'recent' && styles.sortBtnTextActive]}>
-              Date
+              Date {sortMode === 'recent' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
             </Text>
           </Pressable>
         </ScrollView>
