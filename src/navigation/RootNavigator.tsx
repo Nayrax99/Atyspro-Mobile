@@ -12,6 +12,7 @@ import {
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
 } from '@expo-google-fonts/plus-jakarta-sans';
+import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import 'react-native-reanimated';
 
@@ -19,6 +20,7 @@ import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
 import { BusinessProvider } from '@/src/contexts/BusinessContext';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
+import { setUnauthorizedCallback } from '@/src/services/api';
 
 // Écran de chargement au démarrage (vérification du token)
 function LoadingScreen() {
@@ -31,8 +33,13 @@ function LoadingScreen() {
 }
 
 function RootNavigatorContent() {
-  const { isAuthenticated, isLoading, account } = useAuth();
+  const { isAuthenticated, isLoading, account, logout } = useAuth();
   const pathname = usePathname();
+
+  // Enregistrer le callback de déconnexion automatique en cas de token expiré (401)
+  useEffect(() => {
+    setUnauthorizedCallback(() => logout());
+  }, [logout]);
 
   if (isLoading) {
     return <LoadingScreen />;

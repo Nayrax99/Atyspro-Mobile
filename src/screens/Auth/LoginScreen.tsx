@@ -1,7 +1,7 @@
 /**
  * LoginScreen - Connexion — bloc dark en haut + carte formulaire claire
  */
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -32,6 +32,7 @@ function FeatureDot({ color, label }: { color: string; label: string }) {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { reason } = useLocalSearchParams<{ reason?: string }>();
   const { login } = useAuth();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
@@ -78,6 +79,15 @@ export default function LoginScreen() {
 
         {/* Contenu principal */}
         <View style={[styles.mainContent, { paddingBottom: insets.bottom + 24 }]}>
+          {/* Bannière session expirée */}
+          {reason === 'session_expired' && (
+            <View style={{ backgroundColor: '#FEF3C7', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+              <Text style={{ color: '#92400E', fontSize: 13, fontFamily: fontFamily.medium, textAlign: 'center' }}>
+                Votre session a expiré. Veuillez vous reconnecter.
+              </Text>
+            </View>
+          )}
+
           {/* Badge */}
           <View style={styles.badge}>
             <Text style={styles.badgeText}>CONNEXION SÉCURISÉE</Text>

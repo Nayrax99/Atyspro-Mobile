@@ -15,7 +15,18 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+// Callback enregistrable pour gérer les erreurs 401 (token expiré)
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedCallback(cb: () => void) {
+  onUnauthorized = cb;
+}
+
 async function handleResponse<T>(res: Response): Promise<ApiResponse<T>> {
+  // Token expiré → déclencher le logout via callback
+  if (res.status === 401) {
+    onUnauthorized?.();
+    return { success: false, error: 'Session expirée. Reconnectez-vous.' };
+  }
   const json = await res.json();
   if (!res.ok) {
     return {
@@ -30,8 +41,18 @@ export async function apiGet<T>(path: string): Promise<ApiResponse<T>> {
   const token = await getStoredToken();
   const headers: Record<string, string> = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${baseUrl}${path}`, { headers });
-  return handleResponse<T>(res);
+  try {
+    const res = await fetch(`${baseUrl}${path}`, { headers });
+    return handleResponse<T>(res);
+  } catch (err) {
+    const isNetwork = err instanceof TypeError;
+    return {
+      success: false,
+      error: isNetwork
+        ? 'Pas de connexion internet. Vérifiez votre réseau.'
+        : err instanceof Error ? err.message : 'Erreur inconnue',
+    };
+  }
 }
 
 export async function apiPatch<T>(
@@ -41,12 +62,22 @@ export async function apiPatch<T>(
   const token = await getStoredToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${baseUrl}${path}`, {
-    method: 'PATCH',
-    headers,
-    body: JSON.stringify(body),
-  });
-  return handleResponse<T>(res);
+  try {
+    const res = await fetch(`${baseUrl}${path}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(body),
+    });
+    return handleResponse<T>(res);
+  } catch (err) {
+    const isNetwork = err instanceof TypeError;
+    return {
+      success: false,
+      error: isNetwork
+        ? 'Pas de connexion internet. Vérifiez votre réseau.'
+        : err instanceof Error ? err.message : 'Erreur inconnue',
+    };
+  }
 }
 
 export async function apiPost<T>(
@@ -56,10 +87,20 @@ export async function apiPost<T>(
   const token = await getStoredToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${baseUrl}${path}`, {
-    method: 'POST',
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  return handleResponse<T>(res);
+  try {
+    const res = await fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return handleResponse<T>(res);
+  } catch (err) {
+    const isNetwork = err instanceof TypeError;
+    return {
+      success: false,
+      error: isNetwork
+        ? 'Pas de connexion internet. Vérifiez votre réseau.'
+        : err instanceof Error ? err.message : 'Erreur inconnue',
+    };
+  }
 }

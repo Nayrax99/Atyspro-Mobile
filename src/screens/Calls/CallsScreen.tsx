@@ -234,8 +234,8 @@ function HistoryTab() {
       ListEmptyComponent={
         <EmptyState
           icon={PhoneOff}
-          title="Aucun appel"
-          subtitle="L'historique de vos appels traités apparaîtra ici"
+          title="Aucun appel enregistré pour le moment"
+          subtitle="L'historique de vos appels qualifiés par l'assistant apparaîtra ici"
         />
       }
     />

@@ -12,7 +12,7 @@ export default function NotificationsScreen() {
       <EmptyState
         icon={BellOff}
         title="Aucune notification"
-        subtitle="Vous serez notifié dès qu'un nouveau lead arrive"
+        subtitle="Vous serez notifié dès qu'un nouveau lead prioritaire arrivera"
       />
     </View>
   );
