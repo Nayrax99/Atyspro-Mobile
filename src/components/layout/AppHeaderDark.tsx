@@ -16,18 +16,28 @@ import { fontFamily } from '@/src/constants/typography';
 export function AppHeaderDark() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { account } = useAuth();
+  const { account, user } = useAuth();
   const [hasUnread] = useState(false);
 
-  const firstName = (account?.name || 'vous').split(' ')[0] || 'vous';
-  const initials = (account?.name || 'A')
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const acc = account as Record<string, unknown> | null;
+  const firstName =
+    (acc?.first_name as string | null) ||
+    (account?.name || '').split(' ')[0] ||
+    'vous';
+  const initials =
+    (acc?.first_name as string | null) && (acc?.last_name as string | null)
+      ? `${(acc.first_name as string)[0]}${(acc.last_name as string)[0]}`.toUpperCase()
+      : (account?.name || 'A')
+          .split(' ')
+          .map((w) => w[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
 
-  const subtitle = account?.name || 'AtysPro';
+  const subtitle =
+    (acc?.company_name as string | null) ||
+    user?.email ||
+    'AtysPro';
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
