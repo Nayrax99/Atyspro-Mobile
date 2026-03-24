@@ -2,7 +2,7 @@
  * LeadsScreen - Liste leads avec filtres compacts + pagination 10/page
  */
 
-import { LeadCard } from '@/src/components/leads/LeadCard';
+import { SwipeableLeadCard } from '@/src/components/leads/SwipeableLeadCard';
 import { EmptyState } from '@/src/components/common/EmptyState';
 import { fetchLeads } from '@/src/services/leads.service';
 import type { Lead } from '@/src/services/leads.service';
@@ -111,6 +111,10 @@ export default function LeadsScreen() {
     void load(true);
   }, [load]);
 
+  function handleStatusChange(leadId: string) {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+  }
+
   return (
     <View style={styles.container}>
       {/* Barre de recherche */}
@@ -218,7 +222,13 @@ export default function LeadsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={[styles.list, paginatedLeads.length === 0 && styles.listEmpty]}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item, index }) => <LeadCard lead={item} index={index} />}
+          renderItem={({ item, index }) => (
+            <SwipeableLeadCard
+              lead={item}
+              index={index}
+              onStatusChange={(leadId: string) => handleStatusChange(leadId)}
+            />
+          )}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
