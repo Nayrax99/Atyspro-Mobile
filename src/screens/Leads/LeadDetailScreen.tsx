@@ -27,10 +27,6 @@ import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
 
-function shortId(id: string): string {
-  return `#${id.slice(0, 8)}`;
-}
-
 function getLeadDisplayName(lead: Lead): string {
   return lead.full_name || lead.contact_name || lead.client_phone || lead.phone || 'Client';
 }
@@ -226,9 +222,6 @@ export default function LeadDetailScreen() {
                 <Pencil size={14} color={colors.slate400} />
               </Pressable>
             )}
-            <Text style={{ fontSize: 11, color: colors.slate400, fontFamily: fontFamily.regular, marginTop: 4 }}>
-              {shortId(lead!.id)}
-            </Text>
           </View>
           <Badge variant={statusVariant} label={statusLabel} />
         </View>
@@ -491,7 +484,7 @@ const styles = StyleSheet.create({
   detailCol: {
     flex: 1,
   },
-  row: { marginBottom: 14 },
+  row: { marginBottom: 20 },
   rowLabel: {
     fontSize: 11,
     fontFamily: fontFamily.semiBold,

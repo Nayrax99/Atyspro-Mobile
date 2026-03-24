@@ -74,7 +74,7 @@ function RootNavigatorContent() {
       <Stack.Screen
         name="lead/[id]"
         options={{
-          title: 'Détail lead',
+          title: 'Détail demande',
           headerStyle: { backgroundColor: '#0f172a' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: '600', color: '#fff' },
