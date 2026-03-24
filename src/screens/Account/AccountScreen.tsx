@@ -103,6 +103,8 @@ export default function AccountScreen() {
         setProPhone(res.data.pro_phone);
       }
       if (!cancelled) setLoadingPhone(false);
+    }).catch(() => {
+      if (!cancelled) setLoadingPhone(false);
     });
     return () => { cancelled = true; };
   }, []);
@@ -615,28 +617,6 @@ const styles = StyleSheet.create({
   settingLabel: { fontSize: 15, fontFamily: fontFamily.medium, color: colors.textPrimary },
   settingSub: { fontSize: 12, fontFamily: fontFamily.regular, color: colors.textMuted, marginTop: 2 },
   settingRight: { marginLeft: 8 },
-
-  // Badges
-  soonBadge: {
-    backgroundColor: '#ede9fe',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  soonText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bold,
-    color: colors.atysViolet,
-    letterSpacing: 0.5,
-  },
-  numberPlaceholder: {
-    fontSize: 13,
-    fontFamily: fontFamily.regular,
-    color: colors.textMuted,
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: 14,
-    marginLeft: 44,
-  },
 
   // Version & link
   versionDot: {
