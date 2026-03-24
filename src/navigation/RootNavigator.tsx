@@ -15,6 +15,7 @@ import {
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
 import { BusinessProvider } from '@/src/contexts/BusinessContext';
@@ -120,14 +121,16 @@ export default function RootNavigator() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <BusinessProvider>
-          <RootNavigatorContent />
-          <StatusBar style="auto" />
-        </BusinessProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AuthProvider>
+          <BusinessProvider>
+            <RootNavigatorContent />
+            <StatusBar style="auto" />
+          </BusinessProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
