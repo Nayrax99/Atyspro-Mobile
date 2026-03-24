@@ -19,7 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Clock, Lock, Phone, Pencil, Camera } from 'lucide-react-native';
 
 import { useAuth } from '@/src/contexts/AuthContext';
-import { apiPatch } from '@/src/services/api';
+import { apiPatch, apiGet } from '@/src/services/api';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
@@ -81,6 +81,8 @@ export default function AccountScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [avatarPreset, setAvatarPreset] = useState<[string, string]>(['#1A56DB', '#7c3aed']);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [proPhone, setProPhone] = useState<string | null>(null);
+  const [loadingPhone, setLoadingPhone] = useState(false);
 
   useEffect(() => {
     if (account) {
@@ -92,6 +94,18 @@ export default function AccountScreen() {
       setCityValue(typeof a.city === 'string' ? a.city : '');
     }
   }, [account]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingPhone(true);
+    apiGet<{ pro_phone: string | null }>('/api/account').then((res) => {
+      if (!cancelled && res.success && res.data) {
+        setProPhone(res.data.pro_phone);
+      }
+      if (!cancelled) setLoadingPhone(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const isDirty =
     nameValue !== (account?.name ?? '') ||
@@ -322,16 +336,16 @@ export default function AccountScreen() {
         <Text style={styles.sectionTitle}>Numéro professionnel</Text>
         <View style={styles.card}>
           <SettingRow
-            icon={<Phone size={18} color={colors.atysViolet} />}
-            label="Numéro professionnel"
-            sub={"Un numéro dédié sera attribué à votre compte"}
-            right={
-              <View style={styles.soonBadge}>
-                <Text style={styles.soonText}>SOON</Text>
-              </View>
+            icon={<Phone size={18} color={proPhone ? colors.atysBlue : colors.slate400} />}
+            label="Numéro AtysPro"
+            sub={
+              loadingPhone
+                ? 'Chargement…'
+                : proPhone
+                ? proPhone
+                : "En attente d'activation"
             }
           />
-          <Text style={styles.numberPlaceholder}>{"En cours d'attribution"}</Text>
         </View>
       </View>
 
