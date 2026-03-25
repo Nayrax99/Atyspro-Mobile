@@ -111,8 +111,12 @@ export default function LeadsScreen() {
     void load(true);
   }, [load]);
 
-  function handleStatusChange(leadId: string) {
-    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+  function handleStatusChange(leadId: string, newStatus: string) {
+    if (statusFilter === 'all') {
+      setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, status: newStatus } : l));
+    } else {
+      setLeads((prev) => prev.filter((l) => l.id !== leadId));
+    }
   }
 
   return (
@@ -226,7 +230,7 @@ export default function LeadsScreen() {
             <SwipeableLeadCard
               lead={item}
               index={index}
-              onStatusChange={(leadId: string) => handleStatusChange(leadId)}
+              onStatusChange={handleStatusChange}
             />
           )}
           refreshControl={

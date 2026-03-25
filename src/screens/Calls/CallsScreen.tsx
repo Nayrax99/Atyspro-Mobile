@@ -6,9 +6,11 @@ import {
   Animated,
   FlatList,
   Linking,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -119,7 +121,64 @@ function getCallDurationMs(call: Call): number | null {
   return new Date(call.ended_at).getTime() - new Date(call.started_at).getTime();
 }
 
-function CallItem({ call, index }: { call: Call; index: number }) {
+function formatDuration(ms: number): string {
+  const totalSec = Math.floor(ms / 1000);
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  if (mins === 0) return `${secs}s`;
+  return `${mins} min ${secs > 0 ? `${secs}s` : ''}`.trim();
+}
+
+function CallDetailSheet({ call, visible, onClose }: { call: Call | null; visible: boolean; onClose: () => void }) {
+  if (!call) return null;
+  const durationMs = getCallDurationMs(call);
+  const callerNumber = formatCallerNumber(call);
+  const dateStr = new Date(call.started_at).toLocaleString('fr-FR', {
+    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={sheetStyles.overlay} onPress={onClose}>
+        <Pressable style={sheetStyles.sheet} onPress={() => {}}>
+          <View style={sheetStyles.handle} />
+          <Text style={sheetStyles.title}>Détail de l&apos;appel</Text>
+
+          <View style={sheetStyles.row}>
+            <Text style={sheetStyles.rowLabel}>Numéro</Text>
+            <Text style={sheetStyles.rowValue}>{callerNumber}</Text>
+          </View>
+          <View style={sheetStyles.divider} />
+          <View style={sheetStyles.row}>
+            <Text style={sheetStyles.rowLabel}>Date</Text>
+            <Text style={sheetStyles.rowValue}>{dateStr}</Text>
+          </View>
+          <View style={sheetStyles.divider} />
+          <View style={sheetStyles.row}>
+            <Text style={sheetStyles.rowLabel}>Durée</Text>
+            <Text style={sheetStyles.rowValue}>{durationMs !== null ? formatDuration(durationMs) : '—'}</Text>
+          </View>
+
+          {call.lead?.description ? (
+            <>
+              <View style={sheetStyles.divider} />
+              <Text style={sheetStyles.transcriptionLabel}>Transcription SMS</Text>
+              <ScrollView style={sheetStyles.transcriptionBox} nestedScrollEnabled>
+                <Text style={sheetStyles.transcriptionText}>{call.lead.description}</Text>
+              </ScrollView>
+            </>
+          ) : null}
+
+          <Pressable style={sheetStyles.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel="Fermer">
+            <Text style={sheetStyles.closeBtnText}>Fermer</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function CallItem({ call, index, onPress }: { call: Call; index: number; onPress: () => void }) {
   const isInbound = call.direction === 'inbound';
   const animStyle = useCardEntrance(index);
 
@@ -134,7 +193,12 @@ function CallItem({ call, index }: { call: Call; index: number }) {
 
   return (
     <Animated.View style={animStyle}>
-      <View style={[styles.callItem, { borderLeftColor: borderColor }]}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.callItem, { borderLeftColor: borderColor }, pressed && { opacity: 0.85 }]}
+        accessibilityRole="button"
+        accessibilityLabel={`Appel de ${formatCallerNumber(call)}`}
+      >
         <View
           style={[
             styles.callIconWrap,
@@ -161,7 +225,8 @@ function CallItem({ call, index }: { call: Call; index: number }) {
             {duration ? ` · ${duration}` : ''}
           </Text>
         </View>
-      </View>
+        <Text style={styles.callChevron}>›</Text>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -183,6 +248,7 @@ function StatPill({ label, value }: StatPillProps) {
 function HistoryTab() {
   const [calls, setCalls] = useState<Call[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedCall, setSelectedCall] = useState<Call | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await fetchCalls();
@@ -213,32 +279,41 @@ function HistoryTab() {
   const avgLabel = avgDurationMin > 0 ? `${avgDurationMin} min` : '< 1 min';
 
   return (
-    <FlatList
-      data={calls}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => <CallItem call={item} index={index} />}
-      contentContainerStyle={[styles.listContent, calls.length === 0 && styles.listEmpty]}
-      ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.atysBlue} />
-      }
-      ListHeaderComponent={
-        calls.length > 0 ? (
-          <View style={styles.statsRow}>
-            <StatPill label="TOTAL" value={calls.length} />
-            <StatPill label="QUALIFIÉS" value={qualified} />
-            <StatPill label="DURÉE MOY." value={durations.length > 0 ? avgLabel : '—'} />
-          </View>
-        ) : null
-      }
-      ListEmptyComponent={
-        <EmptyState
-          icon={PhoneOff}
-          title="Aucun appel enregistré pour le moment"
-          subtitle="L'historique de vos appels qualifiés par l'assistant apparaîtra ici"
-        />
-      }
-    />
+    <>
+      <FlatList
+        data={calls}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
+          <CallItem call={item} index={index} onPress={() => setSelectedCall(item)} />
+        )}
+        contentContainerStyle={[styles.listContent, calls.length === 0 && styles.listEmpty]}
+        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.atysBlue} />
+        }
+        ListHeaderComponent={
+          calls.length > 0 ? (
+            <View style={styles.statsRow}>
+              <StatPill label="TOTAL" value={calls.length} />
+              <StatPill label="QUALIFIÉS" value={qualified} />
+              <StatPill label="DURÉE MOY." value={durations.length > 0 ? avgLabel : '—'} />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          <EmptyState
+            icon={PhoneOff}
+            title="Aucun appel enregistré pour le moment"
+            subtitle="L'historique de vos appels qualifiés par l'assistant apparaîtra ici"
+          />
+        }
+      />
+      <CallDetailSheet
+        call={selectedCall}
+        visible={selectedCall !== null}
+        onClose={() => setSelectedCall(null)}
+      />
+    </>
   );
 }
 
@@ -435,5 +510,98 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fontFamily.semiBold,
     color: colors.atysBlue,
+  },
+  callChevron: {
+    fontSize: 20,
+    color: colors.slate300,
+    marginLeft: 4,
+    fontFamily: fontFamily.regular,
+  },
+});
+
+const sheetStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.borderDefault,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 17,
+    fontFamily: fontFamily.bold,
+    color: colors.textPrimary,
+    marginBottom: 20,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  rowLabel: {
+    fontSize: 13,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textSecondary,
+  },
+  rowValue: {
+    fontSize: 14,
+    fontFamily: fontFamily.medium,
+    color: colors.textPrimary,
+    flexShrink: 1,
+    textAlign: 'right',
+    marginLeft: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderDefault,
+  },
+  transcriptionLabel: {
+    fontSize: 12,
+    fontFamily: fontFamily.bold,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  transcriptionBox: {
+    backgroundColor: colors.slate50,
+    borderRadius: 10,
+    padding: 12,
+    maxHeight: 160,
+    marginBottom: 4,
+  },
+  transcriptionText: {
+    fontSize: 13,
+    fontFamily: fontFamily.regular,
+    color: colors.textPrimary,
+    lineHeight: 20,
+  },
+  closeBtn: {
+    marginTop: 20,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: colors.slate100,
+    alignItems: 'center',
+  },
+  closeBtnText: {
+    fontSize: 15,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textPrimary,
   },
 });

@@ -57,7 +57,7 @@ export async function logout(): Promise<void> {
 export async function fetchMe(token: string): Promise<{
   success: boolean;
   user?: { id: string; email: string };
-  account?: { id: string; name: string; onboarding_completed: boolean };
+  account?: { id: string; name: string; onboarding_completed: boolean; pro_phone: string | null };
   error?: string;
 }> {
   try {

@@ -18,6 +18,7 @@ interface AuthState {
     id: string;
     name: string;
     onboarding_completed: boolean;
+    pro_phone: string | null;
   } | null;
 }
 

@@ -19,7 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Clock, Lock, Phone, Pencil, Camera } from 'lucide-react-native';
 
 import { useAuth } from '@/src/contexts/AuthContext';
-import { apiPatch, apiGet } from '@/src/services/api';
+import { apiPatch } from '@/src/services/api';
 import { colors } from '@/src/constants/colors';
 import { fontFamily } from '@/src/constants/typography';
 import { theme } from '@/src/constants/theme';
@@ -70,7 +70,6 @@ export default function AccountScreen() {
   const { account, user, logout, refreshAuth } = useAuth();
 
   const acc = account as Record<string, unknown>;
-  const [nameValue, setNameValue] = useState(account?.name ?? '');
   const [firstNameValue, setFirstNameValue] = useState(acc?.first_name as string ?? '');
   const [lastNameValue, setLastNameValue] = useState(acc?.last_name as string ?? '');
   const [companyNameValue, setCompanyNameValue] = useState(acc?.company_name as string ?? '');
@@ -81,13 +80,11 @@ export default function AccountScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [avatarPreset, setAvatarPreset] = useState<[string, string]>(['#1A56DB', '#7c3aed']);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [proPhone, setProPhone] = useState<string | null>(null);
-  const [loadingPhone, setLoadingPhone] = useState(false);
+  const proPhone = account?.pro_phone ?? null;
 
   useEffect(() => {
     if (account) {
       const a = account as Record<string, unknown>;
-      setNameValue(account.name ?? '');
       setFirstNameValue(typeof a.first_name === 'string' ? a.first_name : '');
       setLastNameValue(typeof a.last_name === 'string' ? a.last_name : '');
       setCompanyNameValue(typeof a.company_name === 'string' ? a.company_name : '');
@@ -95,22 +92,7 @@ export default function AccountScreen() {
     }
   }, [account]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoadingPhone(true);
-    apiGet<{ pro_phone: string | null }>('/api/account').then((res) => {
-      if (!cancelled && res.success && res.data) {
-        setProPhone(res.data.pro_phone);
-      }
-      if (!cancelled) setLoadingPhone(false);
-    }).catch(() => {
-      if (!cancelled) setLoadingPhone(false);
-    });
-    return () => { cancelled = true; };
-  }, []);
-
   const isDirty =
-    nameValue !== (account?.name ?? '') ||
     firstNameValue !== (typeof acc?.first_name === 'string' ? acc.first_name : '') ||
     lastNameValue !== (typeof acc?.last_name === 'string' ? acc.last_name : '') ||
     companyNameValue !== (typeof acc?.company_name === 'string' ? acc.company_name : '') ||
@@ -121,7 +103,6 @@ export default function AccountScreen() {
     setSaving(true);
     setSaveError(null);
     const res = await apiPatch('/api/account', {
-      name: nameValue,
       first_name: firstNameValue,
       last_name: lastNameValue,
       company_name: companyNameValue,
@@ -159,7 +140,7 @@ export default function AccountScreen() {
 
   const displayName = firstNameValue && lastNameValue
     ? `${firstNameValue} ${lastNameValue}`
-    : companyNameValue || nameValue || account?.name || 'U';
+    : companyNameValue || account?.name || 'U';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
@@ -253,25 +234,6 @@ export default function AccountScreen() {
 
           <View style={styles.separator} />
 
-          {/* NOM COMPTE (legacy) */}
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>NOM COMPTE</Text>
-            <View style={styles.fieldInputRow}>
-              <TextInput
-                style={styles.fieldInput}
-                value={nameValue}
-                onChangeText={setNameValue}
-                placeholder="Nom affiché sur le compte"
-                placeholderTextColor={colors.placeholder}
-                returnKeyType="done"
-                accessibilityLabel="Nom compte"
-              />
-              <Pencil size={14} color={colors.slate400} />
-            </View>
-          </View>
-
-          <View style={styles.separator} />
-
           {/* EMAIL — verrouillé */}
           <View style={styles.fieldRow}>
             <Text style={styles.fieldLabel}>EMAIL</Text>
@@ -340,13 +302,7 @@ export default function AccountScreen() {
           <SettingRow
             icon={<Phone size={18} color={proPhone ? colors.atysBlue : colors.slate400} />}
             label="Numéro AtysPro"
-            sub={
-              loadingPhone
-                ? 'Chargement…'
-                : proPhone
-                ? proPhone
-                : "En attente d'activation"
-            }
+            sub={proPhone ?? "En attente d'activation"}
           />
         </View>
       </View>
