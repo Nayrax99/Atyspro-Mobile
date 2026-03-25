@@ -416,9 +416,9 @@ const styles = StyleSheet.create({
   },
   actionBtn: { paddingVertical: 8, paddingHorizontal: 16 },
   actionText: { fontSize: 14, fontFamily: fontFamily.semiBold, color: colors.atysBlue },
-  keypadWrap: { flex: 1, justifyContent: 'center' },
+  keypadWrap: { justifyContent: 'center' },
   callBtnWrapper: {
-    marginTop: 24,
+    marginTop: 16,
   },
   callBtn: {
     borderRadius: theme.borderRadius.xl,

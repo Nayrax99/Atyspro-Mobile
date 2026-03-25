@@ -128,7 +128,10 @@ export default function AccountScreen() {
       quality: 0.8,
     });
     if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setPhotoUri(uri);
+      await apiPatch('/api/account', { avatar: uri });
+      await refreshAuth();
     }
   }
 
@@ -136,6 +139,7 @@ export default function AccountScreen() {
     setAvatarPreset(preset);
     setPhotoUri(null);
     setShowAvatarPicker(false);
+    void apiPatch('/api/account', { avatar: null, avatar_preset: preset.join(',') }).then(() => refreshAuth());
   }
 
   const displayName = firstNameValue && lastNameValue

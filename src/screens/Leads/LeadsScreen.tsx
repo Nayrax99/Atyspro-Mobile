@@ -222,6 +222,7 @@ export default function LeadsScreen() {
 
       {!loading && !error && (
         <FlatList
+          style={styles.flatList}
           data={paginatedLeads}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[styles.list, paginatedLeads.length === 0 && styles.listEmpty]}
@@ -353,6 +354,7 @@ const styles = StyleSheet.create({
     color: colors.atysBlue,
   },
 
+  flatList: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorCard: {
     margin: theme.spacing.md,
