@@ -54,38 +54,40 @@ function DialerTab() {
 
   return (
     <View style={styles.dialerBody}>
-      <View style={styles.display}>
-        <Text
-          style={styles.displayText}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.6}
-        >
-          {number || ' '}
-        </Text>
-      </View>
-      <View style={styles.dialerActions}>
-        <Pressable
-          onPress={onBackspace}
-          style={styles.actionBtn}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Effacer dernier chiffre"
-        >
-          <Text style={styles.actionText}>Effacer</Text>
-        </Pressable>
-        <Pressable
-          onPress={onClear}
-          style={styles.actionBtn}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Tout effacer"
-        >
-          <Text style={styles.actionText}>Tout effacer</Text>
-        </Pressable>
-      </View>
-      <View style={styles.keypadWrap}>
-        <Keypad onKeyPress={onKeyPress} />
+      <View style={styles.dialerTop}>
+        <View style={styles.display}>
+          <Text
+            style={styles.displayText}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
+            {number || ' '}
+          </Text>
+        </View>
+        <View style={styles.dialerActions}>
+          <Pressable
+            onPress={onBackspace}
+            style={styles.actionBtn}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Effacer dernier chiffre"
+          >
+            <Text style={styles.actionText}>Effacer</Text>
+          </Pressable>
+          <Pressable
+            onPress={onClear}
+            style={styles.actionBtn}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Tout effacer"
+          >
+            <Text style={styles.actionText}>Tout effacer</Text>
+          </Pressable>
+        </View>
+        <View style={styles.keypadWrap}>
+          <Keypad onKeyPress={onKeyPress} />
+        </View>
       </View>
       <Pressable
         onPress={onCall}
@@ -390,7 +392,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.lg,
+    justifyContent: 'space-between',
   },
+  dialerTop: {},
   display: {
     backgroundColor: colors.white,
     borderRadius: theme.borderRadius.lg,
@@ -416,10 +420,8 @@ const styles = StyleSheet.create({
   },
   actionBtn: { paddingVertical: 8, paddingHorizontal: 16 },
   actionText: { fontSize: 14, fontFamily: fontFamily.semiBold, color: colors.atysBlue },
-  keypadWrap: { justifyContent: 'center' },
-  callBtnWrapper: {
-    marginTop: 16,
-  },
+  keypadWrap: { alignItems: 'center' },
+  callBtnWrapper: {},
   callBtn: {
     borderRadius: theme.borderRadius.xl,
     padding: 14,

@@ -77,7 +77,10 @@ export default function AccountScreen() {
   const [specialty] = useState(acc?.specialty as string ?? '');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(() => {
+    const a = account as Record<string, unknown>;
+    return typeof a?.avatar_url === 'string' ? a.avatar_url : null;
+  });
   const [avatarPreset, setAvatarPreset] = useState<[string, string]>(['#1A56DB', '#7c3aed']);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const proPhone = account?.pro_phone ?? null;
@@ -89,6 +92,7 @@ export default function AccountScreen() {
       setLastNameValue(typeof a.last_name === 'string' ? a.last_name : '');
       setCompanyNameValue(typeof a.company_name === 'string' ? a.company_name : '');
       setCityValue(typeof a.city === 'string' ? a.city : '');
+      setPhotoUri(typeof a.avatar_url === 'string' ? a.avatar_url : null);
     }
   }, [account]);
 
@@ -130,7 +134,7 @@ export default function AccountScreen() {
     if (!result.canceled && result.assets[0]) {
       const uri = result.assets[0].uri;
       setPhotoUri(uri);
-      await apiPatch('/api/account', { avatar: uri });
+      await apiPatch('/api/account', { avatar_url: uri });
       await refreshAuth();
     }
   }
@@ -139,7 +143,7 @@ export default function AccountScreen() {
     setAvatarPreset(preset);
     setPhotoUri(null);
     setShowAvatarPicker(false);
-    void apiPatch('/api/account', { avatar: null, avatar_preset: preset.join(',') }).then(() => refreshAuth());
+    void apiPatch('/api/account', { avatar_url: null }).then(() => refreshAuth());
   }
 
   const displayName = firstNameValue && lastNameValue

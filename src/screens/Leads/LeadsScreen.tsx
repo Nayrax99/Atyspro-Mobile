@@ -10,7 +10,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
-  FlatList,
   Keyboard,
   Platform,
   Pressable,
@@ -21,6 +20,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FileText } from 'lucide-react-native';
 import { colors } from '@/src/constants/colors';
