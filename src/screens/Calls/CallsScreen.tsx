@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   dialerBody: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
+    paddingBottom: 80,
   },
   display: {
     backgroundColor: colors.white,

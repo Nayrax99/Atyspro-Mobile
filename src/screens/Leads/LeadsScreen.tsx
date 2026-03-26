@@ -10,7 +10,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
-  FlatList,
   Keyboard,
   Platform,
   Pressable,
@@ -213,12 +212,9 @@ export default function LeadsScreen() {
       )}
 
       {!loading && !error && (
-        <FlatList
-          data={paginatedLeads}
-          keyExtractor={(item) => item.id}
+        <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={[styles.list, paginatedLeads.length === 0 && styles.listEmpty]}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item, index }) => <LeadCard lead={item} index={index} />}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -227,30 +223,37 @@ export default function LeadsScreen() {
               tintColor={colors.atysBlue}
             />
           }
-          ListEmptyComponent={
+          keyboardShouldPersistTaps="handled"
+        >
+          {paginatedLeads.length === 0 ? (
             <EmptyState
               icon={FileText}
               title="Aucune demande pour le moment"
               subtitle="Les appels qualifiés par votre assistant apparaîtront ici"
             />
-          }
-          ListFooterComponent={
-            hasMore ? (
-              <Pressable
-                onPress={() => setPage((p) => p + 1)}
-                style={styles.loadMoreBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Charger plus de demandes"
-              >
-                <Text style={styles.loadMoreText}>Charger plus</Text>
-              </Pressable>
-            ) : paginatedLeads.length > 0 ? (
-              <Text style={styles.endText}>
-                {filteredAndSortedLeads.length} demande{filteredAndSortedLeads.length > 1 ? 's' : ''} au total
-              </Text>
-            ) : null
-          }
-        />
+          ) : (
+            paginatedLeads.map((item, index) => (
+              <View key={item.id}>
+                {index > 0 && <View style={styles.separator} />}
+                <LeadCard lead={item} index={index} />
+              </View>
+            ))
+          )}
+          {hasMore ? (
+            <Pressable
+              onPress={() => setPage((p) => p + 1)}
+              style={styles.loadMoreBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Charger plus de demandes"
+            >
+              <Text style={styles.loadMoreText}>Charger plus</Text>
+            </Pressable>
+          ) : paginatedLeads.length > 0 ? (
+            <Text style={styles.endText}>
+              {filteredAndSortedLeads.length} demande{filteredAndSortedLeads.length > 1 ? 's' : ''} au total
+            </Text>
+          ) : null}
+        </ScrollView>
       )}
     </View>
   );
@@ -260,6 +263,7 @@ const minTouch = Platform.OS === 'android' ? 48 : 44;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  scrollView: { flex: 1 },
   searchRow: {
     paddingHorizontal: theme.spacing.md,
     paddingTop: 12,
