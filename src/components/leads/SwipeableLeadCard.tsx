@@ -3,7 +3,7 @@
  * Seuil : 60% largeur. Feedback visuel + haptic au déclenchement.
  */
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -44,8 +44,8 @@ export function SwipeableLeadCard({ lead, index = 0, onStatusChange }: Swipeable
   }, []);
 
   const pan = Gesture.Pan()
-    .activeOffsetX([-15, 15])
-    .failOffsetY([-5, 5])
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-10, 10])
     .onUpdate((e) => {
       if (e.translationX < 0) {
         translateX.value = e.translationX;
@@ -89,6 +89,12 @@ export function SwipeableLeadCard({ lead, index = 0, onStatusChange }: Swipeable
       setShowConfirm(false);
       onStatusChange?.(lead.id, 'traite');
     }
+  }
+
+  // Sur PWA web, le GestureDetector RNGH capture les events tactiles verticaux
+  // et bloque le scroll du parent — on désactive le swipe sur web.
+  if (Platform.OS === 'web') {
+    return <LeadCard lead={lead} index={index} />;
   }
 
   return (

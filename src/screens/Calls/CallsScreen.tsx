@@ -13,7 +13,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneOff } from 'lucide-react-native';
@@ -31,19 +30,8 @@ import { theme } from '@/src/constants/theme';
 
 type Tab = 'dialer' | 'history';
 
-// Hauteur segmented control + marges (approx)
-const SEGMENTED_H = 90;
-// Hauteur display + actions + callBtn + paddingBottom
-const FIXED_CONTENT_H = 72 + 64 + 48 + 80;
-
 function DialerTab() {
-  const { height: windowHeight } = useWindowDimensions();
   const [number, setNumber] = useState('');
-
-  // Taille des touches : remplit la hauteur disponible, entre 52 et 72px
-  const keySize = Math.min(72, Math.max(52,
-    Math.floor((windowHeight - SEGMENTED_H - FIXED_CONTENT_H - 48) / 4)
-  ));
 
   function onKeyPress(key: string) {
     setNumber((n) => n + key);
@@ -65,7 +53,7 @@ function DialerTab() {
   }
 
   return (
-    <View style={[styles.dialerBody, { height: windowHeight - SEGMENTED_H }]}>
+    <View style={styles.dialerBody}>
       <View style={styles.dialerTop}>
         <View style={styles.display}>
           <Text
@@ -98,7 +86,7 @@ function DialerTab() {
           </Pressable>
         </View>
         <View style={styles.keypadWrap}>
-          <Keypad onKeyPress={onKeyPress} keySize={keySize} />
+          <Keypad onKeyPress={onKeyPress} />
         </View>
       </View>
       <Pressable
@@ -403,7 +391,7 @@ const styles = StyleSheet.create({
   dialerBody: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: 80,
+    paddingBottom: 90,
     justifyContent: 'space-between',
   },
   dialerTop: {},
