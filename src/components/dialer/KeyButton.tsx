@@ -10,17 +10,18 @@ import { fontFamily } from '@/src/constants/typography';
 interface KeyButtonProps {
   label: string;
   onPress: () => void;
+  size?: number;
 }
 
-export function KeyButton({ label, onPress }: KeyButtonProps) {
+export function KeyButton({ label, onPress, size = 72 }: KeyButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+      style={({ pressed }) => [styles.key, { width: size, height: size }, pressed && styles.keyPressed]}
       accessibilityRole="button"
       accessibilityLabel={`Touche ${label}`}
     >
-      <Text style={styles.text}>{label}</Text>
+      <Text style={[styles.text, size < 64 && styles.textSmall]}>{label}</Text>
     </Pressable>
   );
 }
@@ -55,5 +56,8 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontFamily: fontFamily.medium,
     color: colors.slate900,
+  },
+  textSmall: {
+    fontSize: 24,
   },
 });

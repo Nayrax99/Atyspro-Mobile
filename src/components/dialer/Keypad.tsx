@@ -15,15 +15,17 @@ const KEYS = [
 
 interface KeypadProps {
   onKeyPress: (key: string) => void;
+  keySize?: number;
 }
 
-export function Keypad({ onKeyPress }: KeypadProps) {
+export function Keypad({ onKeyPress, keySize = 72 }: KeypadProps) {
+  const gap = keySize < 64 ? 8 : 16;
   return (
-    <View style={styles.keypad}>
+    <View style={[styles.keypad, { gap }]}>
       {KEYS.map((row, rowIndex) => (
-        <View key={rowIndex} style={styles.row}>
+        <View key={rowIndex} style={[styles.row, { gap: gap + 8 }]}>
           {row.map((key) => (
-            <KeyButton key={key} label={key} onPress={() => onKeyPress(key)} />
+            <KeyButton key={key} label={key} onPress={() => onKeyPress(key)} size={keySize} />
           ))}
         </View>
       ))}

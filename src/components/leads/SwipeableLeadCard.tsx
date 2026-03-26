@@ -44,8 +44,8 @@ export function SwipeableLeadCard({ lead, index = 0, onStatusChange }: Swipeable
   }, []);
 
   const pan = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .failOffsetY([-15, 15])
+    .activeOffsetX([-15, 15])
+    .failOffsetY([-5, 5])
     .onUpdate((e) => {
       if (e.translationX < 0) {
         translateX.value = e.translationX;
