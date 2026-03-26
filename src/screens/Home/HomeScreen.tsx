@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { Phone, FileText, TrendingUp } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import { fetchLeads } from '@/src/services/leads.service';
 import type { Lead } from '@/src/services/leads.service';
@@ -30,16 +32,23 @@ interface KpiCardProps {
   label: string;
   sub: string;
   subColor: string;
+  onPress?: () => void;
 }
 
-function KpiCard({ icon, iconBg, borderColor, value, label, sub, subColor }: KpiCardProps) {
+function KpiCard({ icon, iconBg, borderColor, value, label, sub, subColor, onPress }: KpiCardProps) {
   return (
-    <View style={[styles.kpiCard, { borderTopColor: borderColor }]}>
+    <Pressable
+      style={({ pressed }) => [styles.kpiCard, { borderTopColor: borderColor }, onPress && pressed && { opacity: 0.8 }]}
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : 'none'}
+      accessibilityLabel={label}
+    >
       <View style={[styles.kpiIconWrap, { backgroundColor: iconBg }]}>{icon}</View>
       <Text style={styles.kpiLabel}>{label}</Text>
       <Text style={styles.kpiValue}>{value}</Text>
       <Text style={[styles.kpiSub, { color: subColor }]}>{sub}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -84,8 +93,13 @@ function BarChart({ leads }: { leads: Lead[] }) {
 
 export default function HomeScreen() {
   const { account } = useAuth();
+  const navigation = useNavigation<import('@react-navigation/native').NavigationProp<Record<string, undefined>>>();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  function goToLeads() {
+    navigation.navigate('leads' as never);
+  }
 
   const firstName = (account as Record<string, unknown>)?.first_name as string | null | undefined;
   const greeting = firstName ? `Bonjour, ${firstName}` : 'Bonjour';
@@ -123,24 +137,26 @@ export default function HomeScreen() {
       {/* Résumé du jour */}
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>{greeting}</Text>
-        <Text style={styles.summaryText}>
-          {hasPending ? (
-            <>
-              Vous avez{' '}
-              <Text style={[styles.summaryHighlight, { color: colors.atysBlue }]}>
-                {pendingLeads.length} demande{pendingLeads.length > 1 ? 's' : ''} à traiter
-              </Text>{' '}
-              {"aujourd'hui"}
-            </>
-          ) : (
-            <>
-              <Text style={[styles.summaryHighlight, { color: colors.atysSuccess }]}>
-                Tout est à jour
-              </Text>
-              , aucune demande en attente
-            </>
-          )}
-        </Text>
+        <Pressable onPress={hasPending ? goToLeads : undefined} disabled={!hasPending}>
+          <Text style={styles.summaryText}>
+            {hasPending ? (
+              <>
+                Vous avez{' '}
+                <Text style={[styles.summaryHighlight, { color: colors.atysBlue }]}>
+                  {pendingLeads.length} demande{pendingLeads.length > 1 ? 's' : ''} à traiter
+                </Text>{' '}
+                {"aujourd'hui"}
+              </>
+            ) : (
+              <>
+                <Text style={[styles.summaryHighlight, { color: colors.atysSuccess }]}>
+                  Tout est à jour
+                </Text>
+                , aucune demande en attente
+              </>
+            )}
+          </Text>
+        </Pressable>
       </View>
 
       {/* KPIs */}
@@ -162,6 +178,7 @@ export default function HomeScreen() {
           label="NOUVELLES DEMANDES"
           sub={`${pendingLeads.length} à traiter`}
           subColor={colors.atysViolet}
+          onPress={goToLeads}
         />
       </View>
 

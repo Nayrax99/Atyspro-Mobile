@@ -70,7 +70,6 @@ export default function AccountScreen() {
   const { account, user, logout, refreshAuth } = useAuth();
 
   const acc = account as Record<string, unknown>;
-  const [nameValue, setNameValue] = useState(account?.name ?? '');
   const [firstNameValue, setFirstNameValue] = useState(acc?.first_name as string ?? '');
   const [lastNameValue, setLastNameValue] = useState(acc?.last_name as string ?? '');
   const [companyNameValue, setCompanyNameValue] = useState(acc?.company_name as string ?? '');
@@ -78,23 +77,26 @@ export default function AccountScreen() {
   const [specialty] = useState(acc?.specialty as string ?? '');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(() => {
+    const a = account as Record<string, unknown>;
+    return typeof a?.avatar_url === 'string' ? a.avatar_url : null;
+  });
   const [avatarPreset, setAvatarPreset] = useState<[string, string]>(['#1A56DB', '#7c3aed']);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const proPhone = account?.pro_phone ?? null;
 
   useEffect(() => {
     if (account) {
       const a = account as Record<string, unknown>;
-      setNameValue(account.name ?? '');
       setFirstNameValue(typeof a.first_name === 'string' ? a.first_name : '');
       setLastNameValue(typeof a.last_name === 'string' ? a.last_name : '');
       setCompanyNameValue(typeof a.company_name === 'string' ? a.company_name : '');
       setCityValue(typeof a.city === 'string' ? a.city : '');
+      setPhotoUri(typeof a.avatar_url === 'string' ? a.avatar_url : null);
     }
   }, [account]);
 
   const isDirty =
-    nameValue !== (account?.name ?? '') ||
     firstNameValue !== (typeof acc?.first_name === 'string' ? acc.first_name : '') ||
     lastNameValue !== (typeof acc?.last_name === 'string' ? acc.last_name : '') ||
     companyNameValue !== (typeof acc?.company_name === 'string' ? acc.company_name : '') ||
@@ -105,7 +107,6 @@ export default function AccountScreen() {
     setSaving(true);
     setSaveError(null);
     const res = await apiPatch('/api/account', {
-      name: nameValue,
       first_name: firstNameValue,
       last_name: lastNameValue,
       company_name: companyNameValue,
@@ -131,7 +132,10 @@ export default function AccountScreen() {
       quality: 0.8,
     });
     if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setPhotoUri(uri);
+      await apiPatch('/api/account', { avatar_url: uri });
+      await refreshAuth();
     }
   }
 
@@ -139,11 +143,12 @@ export default function AccountScreen() {
     setAvatarPreset(preset);
     setPhotoUri(null);
     setShowAvatarPicker(false);
+    void apiPatch('/api/account', { avatar_url: null }).then(() => refreshAuth());
   }
 
   const displayName = firstNameValue && lastNameValue
     ? `${firstNameValue} ${lastNameValue}`
-    : companyNameValue || nameValue || account?.name || 'U';
+    : companyNameValue || account?.name || 'U';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
@@ -237,25 +242,6 @@ export default function AccountScreen() {
 
           <View style={styles.separator} />
 
-          {/* NOM COMPTE (legacy) */}
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>NOM COMPTE</Text>
-            <View style={styles.fieldInputRow}>
-              <TextInput
-                style={styles.fieldInput}
-                value={nameValue}
-                onChangeText={setNameValue}
-                placeholder="Nom affiché sur le compte"
-                placeholderTextColor={colors.placeholder}
-                returnKeyType="done"
-                accessibilityLabel="Nom compte"
-              />
-              <Pencil size={14} color={colors.slate400} />
-            </View>
-          </View>
-
-          <View style={styles.separator} />
-
           {/* EMAIL — verrouillé */}
           <View style={styles.fieldRow}>
             <Text style={styles.fieldLabel}>EMAIL</Text>
@@ -322,16 +308,10 @@ export default function AccountScreen() {
         <Text style={styles.sectionTitle}>Numéro professionnel</Text>
         <View style={styles.card}>
           <SettingRow
-            icon={<Phone size={18} color={colors.atysViolet} />}
-            label="Numéro professionnel"
-            sub={"Un numéro dédié sera attribué à votre compte"}
-            right={
-              <View style={styles.soonBadge}>
-                <Text style={styles.soonText}>SOON</Text>
-              </View>
-            }
+            icon={<Phone size={18} color={proPhone ? colors.atysBlue : colors.slate400} />}
+            label="Numéro AtysPro"
+            sub={proPhone ?? "En attente d'activation"}
           />
-          <Text style={styles.numberPlaceholder}>{"En cours d'attribution"}</Text>
         </View>
       </View>
 
@@ -601,28 +581,6 @@ const styles = StyleSheet.create({
   settingLabel: { fontSize: 15, fontFamily: fontFamily.medium, color: colors.textPrimary },
   settingSub: { fontSize: 12, fontFamily: fontFamily.regular, color: colors.textMuted, marginTop: 2 },
   settingRight: { marginLeft: 8 },
-
-  // Badges
-  soonBadge: {
-    backgroundColor: '#ede9fe',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  soonText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bold,
-    color: colors.atysViolet,
-    letterSpacing: 0.5,
-  },
-  numberPlaceholder: {
-    fontSize: 13,
-    fontFamily: fontFamily.regular,
-    color: colors.textMuted,
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: 14,
-    marginLeft: 44,
-  },
 
   // Version & link
   versionDot: {

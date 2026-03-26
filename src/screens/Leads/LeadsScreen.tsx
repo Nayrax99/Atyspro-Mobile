@@ -2,7 +2,7 @@
  * LeadsScreen - Liste leads avec filtres compacts + pagination 10/page
  */
 
-import { LeadCard } from '@/src/components/leads/LeadCard';
+import { SwipeableLeadCard } from '@/src/components/leads/SwipeableLeadCard';
 import { EmptyState } from '@/src/components/common/EmptyState';
 import { fetchLeads } from '@/src/services/leads.service';
 import type { Lead } from '@/src/services/leads.service';
@@ -109,6 +109,14 @@ export default function LeadsScreen() {
     Keyboard.dismiss();
     void load(true);
   }, [load]);
+
+  function handleStatusChange(leadId: string, newStatus: string) {
+    if (statusFilter === 'all') {
+      setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, status: newStatus } : l));
+    } else {
+      setLeads((prev) => prev.filter((l) => l.id !== leadId));
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -235,7 +243,11 @@ export default function LeadsScreen() {
             paginatedLeads.map((item, index) => (
               <View key={item.id}>
                 {index > 0 && <View style={styles.separator} />}
-                <LeadCard lead={item} index={index} />
+                <SwipeableLeadCard
+                  lead={item}
+                  index={index}
+                  onStatusChange={handleStatusChange}
+                />
               </View>
             ))
           )}
@@ -343,6 +355,7 @@ const styles = StyleSheet.create({
     color: colors.atysBlue,
   },
 
+  flatList: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorCard: {
     margin: theme.spacing.md,

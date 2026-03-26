@@ -12,6 +12,7 @@ export interface Call {
   status: string;
   started_at: string;
   ended_at?: string | null;
+  lead?: { id: string; full_name: string | null; description: string | null } | null;
 }
 
 export async function fetchCalls(): Promise<{ data: Call[]; error?: string }> {
