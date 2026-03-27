@@ -13,6 +13,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneOff } from 'lucide-react-native';
@@ -30,8 +31,34 @@ import { theme } from '@/src/constants/theme';
 
 type Tab = 'dialer' | 'history';
 
+// Hauteur approximative du segmented control + ses marges (padding 4 + btn ~38 + margin 16×2)
+const SEGMENTED_H = 78;
+// Hauteur du display (56) + marginBottom (16)
+const DISPLAY_H = 72;
+// Hauteur des boutons Effacer/Tout effacer (~40) + marginBottom (24)
+const ACTIONS_H = 64;
+// Hauteur minimale du bouton Appeler
+const CALLBTN_H = 52;
+// Gaps entre les 4 rangées de touches (3 × 16)
+const KEYPAD_GAPS = 48;
+
 function DialerTab() {
+  const { height: windowHeight } = useWindowDimensions();
   const [number, setNumber] = useState('');
+
+  // Sur Android PWA le viewport CSS inclut la barre de navigation système (~56-80px)
+  // + la barre d'adresse du navigateur (~56px) → compensation de 100px
+  const navCompensation = Platform.OS === 'web' ? 100 : 0;
+
+  // Hauteur explicite du corps du clavier = viewport - segmented - compensation navbar
+  const bodyH = windowHeight - SEGMENTED_H - navCompensation;
+
+  // Hauteur disponible pour la grille de touches
+  const keyAreaH = bodyH - DISPLAY_H - ACTIONS_H - CALLBTN_H;
+
+  // Taille de chaque touche proportionnelle à l'espace disponible (4 rangées)
+  // Bornée entre 48px (min tactile) et 72px (confort)
+  const keySize = Math.min(72, Math.max(48, Math.floor((keyAreaH - KEYPAD_GAPS) / 4)));
 
   function onKeyPress(key: string) {
     setNumber((n) => n + key);
@@ -53,7 +80,7 @@ function DialerTab() {
   }
 
   return (
-    <View style={styles.dialerBody}>
+    <View style={[styles.dialerBody, { height: bodyH }]}>
       <View style={styles.dialerTop}>
         <View style={styles.display}>
           <Text
@@ -86,7 +113,7 @@ function DialerTab() {
           </Pressable>
         </View>
         <View style={styles.keypadWrap}>
-          <Keypad onKeyPress={onKeyPress} />
+          <Keypad onKeyPress={onKeyPress} keySize={keySize} />
         </View>
       </View>
       <Pressable
@@ -389,9 +416,7 @@ const styles = StyleSheet.create({
 
   // Dialer
   dialerBody: {
-    flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: 90,
     justifyContent: 'space-between',
   },
   dialerTop: {},
