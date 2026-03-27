@@ -13,7 +13,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneOff } from 'lucide-react-native';
@@ -31,34 +30,8 @@ import { theme } from '@/src/constants/theme';
 
 type Tab = 'dialer' | 'history';
 
-// Hauteur approximative du segmented control + ses marges (padding 4 + btn ~38 + margin 16×2)
-const SEGMENTED_H = 78;
-// Hauteur du display (56) + marginBottom (16)
-const DISPLAY_H = 72;
-// Hauteur des boutons Effacer/Tout effacer (~40) + marginBottom (24)
-const ACTIONS_H = 64;
-// Hauteur minimale du bouton Appeler
-const CALLBTN_H = 52;
-// Gaps entre les 4 rangées de touches (3 × 16)
-const KEYPAD_GAPS = 48;
-
 function DialerTab() {
-  const { height: windowHeight } = useWindowDimensions();
   const [number, setNumber] = useState('');
-
-  // Sur Android PWA le viewport CSS inclut la barre de navigation système (~56-80px)
-  // + la barre d'adresse du navigateur (~56px) → compensation de 100px
-  const navCompensation = Platform.OS === 'web' ? 100 : 0;
-
-  // Hauteur explicite du corps du clavier = viewport - segmented - compensation navbar
-  const bodyH = windowHeight - SEGMENTED_H - navCompensation;
-
-  // Hauteur disponible pour la grille de touches
-  const keyAreaH = bodyH - DISPLAY_H - ACTIONS_H - CALLBTN_H;
-
-  // Taille de chaque touche proportionnelle à l'espace disponible (4 rangées)
-  // Bornée entre 48px (min tactile) et 72px (confort)
-  const keySize = Math.min(72, Math.max(48, Math.floor((keyAreaH - KEYPAD_GAPS) / 4)));
 
   function onKeyPress(key: string) {
     setNumber((n) => n + key);
@@ -80,8 +53,9 @@ function DialerTab() {
   }
 
   return (
-    <View style={[styles.dialerBody, { height: bodyH }]}>
-      <View style={styles.dialerTop}>
+    <View style={styles.dialerBody}>
+      {/* Contenu compressible : display + effacer + grille de touches */}
+      <View style={styles.dialerContent}>
         <View style={styles.display}>
           <Text
             style={styles.displayText}
@@ -113,26 +87,30 @@ function DialerTab() {
           </Pressable>
         </View>
         <View style={styles.keypadWrap}>
-          <Keypad onKeyPress={onKeyPress} keySize={keySize} />
+          <Keypad onKeyPress={onKeyPress} />
         </View>
       </View>
-      <Pressable
-        onPress={onCall}
-        disabled={number.replace(/\D/g, '').length < 10}
-        style={({ pressed }) => [styles.callBtnWrapper, pressed && { opacity: 0.9 }]}
-        accessibilityRole="button"
-        accessibilityLabel="Appeler ce numéro"
-      >
-        <LinearGradient
-          colors={['#16A34A', '#059669']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.callBtn}
+
+      {/* Bouton Appeler ancré en bas — hors du flux flex du contenu */}
+      <View style={styles.callBtnContainer}>
+        <Pressable
+          onPress={onCall}
+          disabled={number.replace(/\D/g, '').length < 10}
+          style={({ pressed }) => [styles.callBtnWrapper, pressed && { opacity: 0.9 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Appeler ce numéro"
         >
-          <Phone size={20} color={colors.white} />
-          <Text style={styles.callBtnText}>Appeler</Text>
-        </LinearGradient>
-      </Pressable>
+          <LinearGradient
+            colors={['#16A34A', '#059669']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.callBtn}
+          >
+            <Phone size={20} color={colors.white} />
+            <Text style={styles.callBtnText}>Appeler</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -416,10 +394,19 @@ const styles = StyleSheet.create({
 
   // Dialer
   dialerBody: {
+    flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    justifyContent: 'space-between',
   },
-  dialerTop: {},
+  // Contenu compressible (display + effacer + keypad) — remplit l'espace au-dessus du bouton
+  dialerContent: {
+    flex: 1,
+    justifyContent: 'space-evenly',
+  },
+  // Bouton Appeler ancré en bas, hors du flux flex du contenu
+  callBtnContainer: {
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'web' ? 100 : 24,
+  },
   display: {
     backgroundColor: colors.white,
     borderRadius: theme.borderRadius.lg,
