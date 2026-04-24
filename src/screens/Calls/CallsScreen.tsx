@@ -7,12 +7,12 @@ import {
   FlatList,
   Linking,
   Modal,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneOff } from 'lucide-react-native';
@@ -31,7 +31,15 @@ import { theme } from '@/src/constants/theme';
 type Tab = 'dialer' | 'history';
 
 function DialerTab() {
+  const { height } = useWindowDimensions();
   const [number, setNumber] = useState('');
+
+  // Taille adaptative des boutons keypad selon la hauteur d'écran disponible.
+  // On soustrait les hauteurs fixes estimées : header(56) + tabbar(84) + segmented(80)
+  // + display(72) + actions(52) + bouton appeler(88) + marges(16) ≈ 448px
+  const keypadAvailable = Math.max(200, height - 448);
+  // 4 lignes + espacement interne space-evenly (≈48px de gaps totaux estimés)
+  const keySize = Math.min(72, Math.max(52, Math.floor((keypadAvailable - 48) / 4)));
 
   function onKeyPress(key: string) {
     setNumber((n) => n + key);
@@ -54,63 +62,63 @@ function DialerTab() {
 
   return (
     <View style={styles.dialerBody}>
-      {/* Contenu compressible : display + effacer + grille de touches */}
-      <View style={styles.dialerContent}>
-        <View style={styles.display}>
-          <Text
-            style={styles.displayText}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.6}
-          >
-            {number || ' '}
-          </Text>
-        </View>
-        <View style={styles.dialerActions}>
-          <Pressable
-            onPress={onBackspace}
-            style={styles.actionBtn}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Effacer dernier chiffre"
-          >
-            <Text style={styles.actionText}>Effacer</Text>
-          </Pressable>
-          <Pressable
-            onPress={onClear}
-            style={styles.actionBtn}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Tout effacer"
-          >
-            <Text style={styles.actionText}>Tout effacer</Text>
-          </Pressable>
-        </View>
-        <View style={styles.keypadWrap}>
-          <Keypad onKeyPress={onKeyPress} />
-        </View>
+      {/* Affichage du numéro composé — <Text> pur, jamais de clavier natif */}
+      <View style={styles.display}>
+        <Text
+          style={styles.displayText}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+        >
+          {number || ' '}
+        </Text>
       </View>
 
-      {/* Bouton Appeler ancré en bas — hors du flux flex du contenu */}
-      <View style={styles.callBtnContainer}>
+      {/* Boutons Effacer / Tout effacer */}
+      <View style={styles.dialerActions}>
         <Pressable
-          onPress={onCall}
-          disabled={number.replace(/\D/g, '').length < 10}
-          style={({ pressed }) => [styles.callBtnWrapper, pressed && { opacity: 0.9 }]}
+          onPress={onBackspace}
+          style={styles.actionBtn}
+          hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Appeler ce numéro"
+          accessibilityLabel="Effacer dernier chiffre"
         >
-          <LinearGradient
-            colors={['#16A34A', '#059669']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.callBtn}
-          >
-            <Phone size={20} color={colors.white} />
-            <Text style={styles.callBtnText}>Appeler</Text>
-          </LinearGradient>
+          <Text style={styles.actionText}>Effacer</Text>
+        </Pressable>
+        <Pressable
+          onPress={onClear}
+          style={styles.actionBtn}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Tout effacer"
+        >
+          <Text style={styles.actionText}>Tout effacer</Text>
         </Pressable>
       </View>
+
+      {/* Zone flex — keypad occupe tout l'espace vertical disponible */}
+      <View style={styles.keypadWrap}>
+        <Keypad onKeyPress={onKeyPress} keySize={keySize} />
+      </View>
+
+      {/* CTA Appeler — sticky en bas grâce au flex, sans position absolute */}
+      <Pressable
+        onPress={onCall}
+        disabled={number.replace(/\D/g, '').length < 10}
+        style={({ pressed }) => [styles.callBtnWrapper, pressed && { opacity: 0.9 }]}
+        accessibilityRole="button"
+        accessibilityLabel="Appeler ce numéro"
+      >
+        <LinearGradient
+          colors={['#16A34A', '#059669']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.callBtn}
+        >
+          <Phone size={20} color={colors.white} />
+          <Text style={styles.callBtnText}>Appeler</Text>
+        </LinearGradient>
+      </Pressable>
     </View>
   );
 }
@@ -359,8 +367,6 @@ export default function CallsScreen() {
   );
 }
 
-const minTouch = Platform.OS === 'android' ? 48 : 44;
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
 
@@ -392,26 +398,17 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
   },
 
-  // Dialer
+  // Dialer — structure flex verticale pure, sans paddingBottom hardcodé
+  // La tab bar Expo Router est hors du content area et gère elle-même insets.bottom
   dialerBody: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-  },
-  // Contenu compressible (display + effacer + keypad) — remplit l'espace au-dessus du bouton
-  dialerContent: {
-    flex: 1,
-    justifyContent: 'space-evenly',
-  },
-  // Bouton Appeler ancré en bas, hors du flux flex du contenu
-  callBtnContainer: {
-    paddingTop: 8,
-    paddingBottom: Platform.OS === 'web' ? 100 : 24,
   },
   display: {
     backgroundColor: colors.white,
     borderRadius: theme.borderRadius.lg,
     paddingHorizontal: 20,
-    marginBottom: 16,
+    marginBottom: 12,
     height: 56,
     justifyContent: 'center',
     borderWidth: 1,
@@ -428,12 +425,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 24,
-    marginBottom: 24,
+    marginBottom: 12,
   },
   actionBtn: { paddingVertical: 8, paddingHorizontal: 16 },
   actionText: { fontSize: 14, fontFamily: fontFamily.semiBold, color: colors.atysBlue },
-  keypadWrap: { alignItems: 'center' },
-  callBtnWrapper: {},
+  // flex:1 — absorbe tout l'espace vertical restant entre les actions et le CTA
+  keypadWrap: { flex: 1 },
+  callBtnWrapper: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
   callBtn: {
     borderRadius: theme.borderRadius.xl,
     padding: 14,
@@ -441,7 +442,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    minHeight: minTouch,
+    minHeight: 56,
     shadowColor: '#16A34A',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,

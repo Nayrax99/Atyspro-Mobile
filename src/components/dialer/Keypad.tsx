@@ -19,11 +19,12 @@ interface KeypadProps {
 }
 
 export function Keypad({ onKeyPress, keySize = 72 }: KeypadProps) {
-  const gap = keySize < 64 ? 8 : 16;
   return (
-    <View style={[styles.keypad, { gap }]}>
+    // flex:1 + space-evenly : les 4 lignes se répartissent verticalement dans l'espace dispo
+    // sans gaps hardcodés — s'adapte à toutes les hauteurs d'écran
+    <View style={styles.keypad}>
       {KEYS.map((row, rowIndex) => (
-        <View key={rowIndex} style={[styles.row, { gap: gap + 8 }]}>
+        <View key={rowIndex} style={styles.row}>
           {row.map((key) => (
             <KeyButton key={key} label={key} onPress={() => onKeyPress(key)} size={keySize} />
           ))}
@@ -34,6 +35,7 @@ export function Keypad({ onKeyPress, keySize = 72 }: KeypadProps) {
 }
 
 const styles = StyleSheet.create({
-  keypad: { gap: 16 },
+  // flex:1 pour remplir le keypadWrap, space-evenly distribue les lignes verticalement
+  keypad: { flex: 1, justifyContent: 'space-evenly', width: '100%' },
   row: { flexDirection: 'row', justifyContent: 'center', gap: 24 },
 });
